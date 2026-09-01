@@ -36,6 +36,7 @@
 - API 36 에뮬레이터에서 전체 테스트, Lint, Debug APK 빌드 통과
 - 실제 생성 영수증 이미지에서 `두부 2개`, `시금치 1봉` OCR·선별 확인
 - GitHub Actions에서 단위 테스트, Android Lint, APK 빌드 수행
+- R8 최적화 Release APK/AAB와 외부 키 서명 설정은 [릴리스 가이드](./docs/RELEASE.md) 참고
 
 ```bash
 ./gradlew testDebugUnitTest lintDebug connectedDebugAndroidTest assembleDebug
