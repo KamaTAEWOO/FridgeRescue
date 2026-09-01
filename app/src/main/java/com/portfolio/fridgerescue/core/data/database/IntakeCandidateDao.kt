@@ -24,6 +24,12 @@ interface IntakeCandidateDao {
     @Query("UPDATE intake_candidates SET is_selected = :selected WHERE id = :id")
     suspend fun updateSelected(id: String, selected: Boolean)
 
+    @Query(
+        "UPDATE intake_candidates " +
+            "SET normalized_name = :name, quantity = :quantity WHERE id = :id",
+    )
+    suspend fun updateContent(id: String, name: String, quantity: Int?)
+
     @Transaction
     suspend fun replaceForDraft(draftId: String, candidates: List<IntakeCandidateEntity>) {
         deleteForDraft(draftId)

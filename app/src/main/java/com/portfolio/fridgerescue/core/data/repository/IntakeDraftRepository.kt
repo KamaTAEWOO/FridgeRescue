@@ -25,6 +25,7 @@ interface IntakeDraftRepository {
     suspend fun candidates(draftId: String): List<IntakeCandidate>
     suspend fun replaceCandidates(draftId: String, candidates: List<IntakeCandidate>)
     suspend fun updateCandidateSelected(id: String, selected: Boolean)
+    suspend fun updateCandidateContent(id: String, name: String, quantity: Int?)
 }
 
 class RoomIntakeDraftRepository(
@@ -66,6 +67,9 @@ class RoomIntakeDraftRepository(
 
     override suspend fun updateCandidateSelected(id: String, selected: Boolean) =
         candidateDao.updateSelected(id, selected)
+
+    override suspend fun updateCandidateContent(id: String, name: String, quantity: Int?) =
+        candidateDao.updateContent(id, name, quantity)
 }
 
 private fun IntakeDraftEntity.toDomain() = IntakeDraft(

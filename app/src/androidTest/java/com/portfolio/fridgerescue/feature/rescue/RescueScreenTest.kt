@@ -29,6 +29,7 @@ import com.portfolio.fridgerescue.core.model.IntakeDraft
 import com.portfolio.fridgerescue.core.model.IntakeDraftStatus
 import com.portfolio.fridgerescue.core.model.IntakeErrorCode
 import com.portfolio.fridgerescue.feature.rescue.domain.GetRescueQueueUseCase
+import com.portfolio.fridgerescue.feature.intake.IntakeCandidateTestTags
 import com.portfolio.fridgerescue.feature.rescue.domain.RescueUrgency
 import com.portfolio.fridgerescue.feature.rescue.presentation.RescueAction
 import com.portfolio.fridgerescue.feature.rescue.presentation.FoodEditorTestTags
@@ -488,6 +489,43 @@ class RescueScreenTest {
         )
             .performScrollTo()
             .assertIsDisplayed()
+    }
+
+    @Test
+    fun TC_OCR_007_candidate_name_and_quantity_can_be_edited_inline() {
+        val draft = IntakeDraft(
+            id = "grouped",
+            contentType = IntakeContentType.IMAGE,
+            mimeType = "image/jpeg",
+            textContent = "두부 1개",
+            cachedFilePath = null,
+            status = IntakeDraftStatus.READY,
+            errorCode = null,
+            createdAt = Instant.parse("2026-09-01T00:00:00Z"),
+            updatedAt = Instant.parse("2026-09-01T00:00:00Z"),
+        )
+        val candidate = intakeCandidate("두부", IntakeCandidateGroup.MANAGE, true, 0)
+        var capturedAction: RescueAction? = null
+        setScreen(
+            uiState = contentState().copy(
+                intakeReview = IntakeReviewUiState(draft, listOf(candidate)),
+            ),
+            onAction = { capturedAction = it },
+        )
+
+        composeRule.onNodeWithTag(IntakeCandidateTestTags.edit(candidate.id)).performClick()
+        composeRule.onNodeWithTag(IntakeCandidateTestTags.name(candidate.id))
+            .performTextReplacement("부침용 두부")
+        composeRule.onNodeWithTag(IntakeCandidateTestTags.quantity(candidate.id))
+            .performTextReplacement("3")
+        composeRule.onNodeWithTag(IntakeCandidateTestTags.save(candidate.id))
+            .performScrollTo()
+            .performClick()
+
+        assertEquals(
+            RescueAction.UpdateIntakeCandidate(candidate.id, "부침용 두부", "3"),
+            capturedAction,
+        )
     }
 
     private fun setScreen(

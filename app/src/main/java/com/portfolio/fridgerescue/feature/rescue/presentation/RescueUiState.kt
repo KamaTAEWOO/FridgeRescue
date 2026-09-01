@@ -71,6 +71,11 @@ sealed interface RescueAction {
     data class UndoMutation(val eventId: String) : RescueAction
     data class DismissIntakeDraft(val draftId: String) : RescueAction
     data class ToggleIntakeCandidate(val candidateId: String, val selected: Boolean) : RescueAction
+    data class UpdateIntakeCandidate(
+        val candidateId: String,
+        val name: String,
+        val quantity: String,
+    ) : RescueAction
     data class SaveIntakeCandidates(val draftId: String) : RescueAction
     data object OpenImportOptions : RescueAction
     data object DismissImportOptions : RescueAction

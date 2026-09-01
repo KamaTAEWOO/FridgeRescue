@@ -162,6 +162,9 @@ fun RescueScreen(
             onCandidateSelected = { id, selected ->
                 onAction(RescueAction.ToggleIntakeCandidate(id, selected))
             },
+            onCandidateUpdated = { id, name, quantity ->
+                onAction(RescueAction.UpdateIntakeCandidate(id, name, quantity))
+            },
             onSave = { onAction(RescueAction.SaveIntakeCandidates(intakeReview.draft.id)) },
             onManualEntry = {
                 onAction(RescueAction.StartManualFromIntake(intakeReview.draft.id))

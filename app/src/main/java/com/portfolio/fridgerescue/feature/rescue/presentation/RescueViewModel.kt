@@ -19,6 +19,7 @@ import com.portfolio.fridgerescue.feature.rescue.domain.RescueUrgency
 import com.portfolio.fridgerescue.feature.rescue.domain.SaveFoodItemResult
 import com.portfolio.fridgerescue.feature.rescue.domain.SaveFoodItemUseCase
 import com.portfolio.fridgerescue.feature.intake.SaveIntakeCandidatesUseCase
+import com.portfolio.fridgerescue.feature.intake.UpdateIntakeCandidateUseCase
 import com.portfolio.fridgerescue.feature.intake.FindDuplicateCandidatesUseCase
 import com.portfolio.fridgerescue.feature.report.GetReportMetricsUseCase
 import com.portfolio.fridgerescue.feature.notification.NotificationSettings
@@ -187,6 +188,15 @@ class RescueViewModel(
             is RescueAction.DismissIntakeDraft -> dismissIntakeDraft(action.draftId)
             is RescueAction.ToggleIntakeCandidate -> viewModelScope.launch {
                 intakeDraftRepository?.updateCandidateSelected(action.candidateId, action.selected)
+            }
+            is RescueAction.UpdateIntakeCandidate -> viewModelScope.launch {
+                intakeDraftRepository?.let { repository ->
+                    UpdateIntakeCandidateUseCase(repository)(
+                        candidateId = action.candidateId,
+                        name = action.name,
+                        quantityText = action.quantity,
+                    )
+                }
             }
             is RescueAction.SaveIntakeCandidates -> saveIntakeCandidates(action.draftId)
             RescueAction.OpenImportOptions -> showImportOptions.value = true

@@ -15,14 +15,23 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.portfolio.fridgerescue.R
@@ -40,6 +49,7 @@ fun IntakeDraftSheet(
     state: IntakeReviewUiState,
     onDismiss: () -> Unit,
     onCandidateSelected: (String, Boolean) -> Unit,
+    onCandidateUpdated: (String, String, String) -> Unit,
     onSave: () -> Unit,
     onManualEntry: () -> Unit,
 ) {
@@ -94,6 +104,7 @@ fun IntakeDraftSheet(
                     duplicateCandidateIds = state.duplicateCandidateIds,
                     enabled = !state.isSaving,
                     onCandidateSelected = onCandidateSelected,
+                    onCandidateUpdated = onCandidateUpdated,
                 )
                 CandidateGroup(
                     title = stringResource(R.string.intake_group_review),
@@ -101,6 +112,7 @@ fun IntakeDraftSheet(
                     duplicateCandidateIds = state.duplicateCandidateIds,
                     enabled = !state.isSaving,
                     onCandidateSelected = onCandidateSelected,
+                    onCandidateUpdated = onCandidateUpdated,
                 )
                 CandidateGroup(
                     title = stringResource(R.string.intake_group_excluded),
@@ -108,6 +120,7 @@ fun IntakeDraftSheet(
                     duplicateCandidateIds = state.duplicateCandidateIds,
                     enabled = !state.isSaving,
                     onCandidateSelected = onCandidateSelected,
+                    onCandidateUpdated = onCandidateUpdated,
                 )
                 Button(
                     onClick = onSave,
@@ -164,6 +177,7 @@ private fun CandidateGroup(
     duplicateCandidateIds: Set<String>,
     enabled: Boolean,
     onCandidateSelected: (String, Boolean) -> Unit,
+    onCandidateUpdated: (String, String, String) -> Unit,
 ) {
     if (candidates.isEmpty()) return
     Text(
@@ -172,43 +186,117 @@ private fun CandidateGroup(
         fontWeight = FontWeight.Bold,
     )
     candidates.forEach { candidate ->
-        Surface(
+        EditableCandidate(
+            candidate = candidate,
+            isDuplicate = candidate.id in duplicateCandidateIds,
+            enabled = enabled,
+            onCandidateSelected = onCandidateSelected,
+            onCandidateUpdated = onCandidateUpdated,
+        )
+    }
+}
+
+object IntakeCandidateTestTags {
+    fun edit(id: String) = "intake-candidate-edit-$id"
+    fun name(id: String) = "intake-candidate-name-$id"
+    fun quantity(id: String) = "intake-candidate-quantity-$id"
+    fun save(id: String) = "intake-candidate-save-$id"
+}
+
+@Composable
+private fun EditableCandidate(
+    candidate: IntakeCandidate,
+    isDuplicate: Boolean,
+    enabled: Boolean,
+    onCandidateSelected: (String, Boolean) -> Unit,
+    onCandidateUpdated: (String, String, String) -> Unit,
+) {
+    var editing by rememberSaveable(candidate.id) { mutableStateOf(false) }
+    var name by rememberSaveable(candidate.id) { mutableStateOf(candidate.normalizedName) }
+    var quantity by rememberSaveable(candidate.id) {
+        mutableStateOf(candidate.quantity?.toString().orEmpty())
+    }
+    val validName = name.isNotBlank()
+    val validQuantity = quantity.isBlank() || quantity.toIntOrNull()?.let { it > 0 } == true
+
+    Surface(
             modifier = Modifier.fillMaxWidth(),
             color = MaterialTheme.colorScheme.surfaceVariant,
             shape = MaterialTheme.shapes.large,
         ) {
-            Row(
+            Column(
                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Checkbox(
-                    checked = candidate.isSelected,
-                    onCheckedChange = { onCandidateSelected(candidate.id, it) },
-                    enabled = enabled,
-                )
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(candidate.normalizedName, fontWeight = FontWeight.SemiBold)
-                    val metadata = listOfNotNull(
-                        candidate.quantity?.let { stringResource(R.string.food_quantity_format, it) },
-                        candidate.reason,
-                        if (candidate.id in duplicateCandidateIds) {
-                            stringResource(R.string.intake_duplicate_existing)
-                        } else {
-                            null
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(
+                        checked = candidate.isSelected,
+                        onCheckedChange = { onCandidateSelected(candidate.id, it) },
+                        enabled = enabled,
+                    )
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(candidate.normalizedName, fontWeight = FontWeight.SemiBold)
+                        val metadata = listOfNotNull(
+                            candidate.quantity?.let {
+                                stringResource(R.string.food_quantity_format, it)
+                            },
+                            candidate.reason,
+                            if (isDuplicate) stringResource(R.string.intake_duplicate_existing) else null,
+                        ).joinToString(" · ")
+                        if (metadata.isNotEmpty()) {
+                            Text(
+                                text = metadata,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                    TextButton(
+                        onClick = { editing = !editing },
+                        modifier = Modifier.testTag(IntakeCandidateTestTags.edit(candidate.id)),
+                        enabled = enabled,
+                    ) { Text(stringResource(if (editing) R.string.intake_edit_cancel else R.string.intake_edit)) }
+                }
+                if (editing) {
+                    OutlinedTextField(
+                        value = name,
+                        onValueChange = { name = it },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag(IntakeCandidateTestTags.name(candidate.id)),
+                        label = { Text(stringResource(R.string.intake_edit_name)) },
+                        isError = !validName,
+                        singleLine = true,
+                    )
+                    OutlinedTextField(
+                        value = quantity,
+                        onValueChange = { quantity = it.filter(Char::isDigit) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag(IntakeCandidateTestTags.quantity(candidate.id)),
+                        label = { Text(stringResource(R.string.intake_edit_quantity)) },
+                        supportingText = if (validQuantity) null else {
+                            { Text(stringResource(R.string.intake_edit_quantity_error)) }
                         },
-                    ).joinToString(" · ")
-                    if (metadata.isNotEmpty()) {
-                        Text(
-                            text = metadata,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
+                        isError = !validQuantity,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        singleLine = true,
+                    )
+                    Button(
+                        onClick = {
+                            onCandidateUpdated(candidate.id, name, quantity)
+                            editing = false
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag(IntakeCandidateTestTags.save(candidate.id)),
+                        enabled = enabled && validName && validQuantity,
+                    ) {
+                        Text(stringResource(R.string.intake_edit_save))
                     }
                 }
             }
         }
-    }
 }
 
 @Composable

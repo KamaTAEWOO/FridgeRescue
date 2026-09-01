@@ -53,4 +53,16 @@ class InMemoryIntakeDraftRepository(
             }
         }
     }
+
+    override suspend fun updateCandidateContent(id: String, name: String, quantity: Int?) {
+        candidateValues.update { values ->
+            values.map { candidate ->
+                if (candidate.id == id) {
+                    candidate.copy(normalizedName = name, quantity = quantity)
+                } else {
+                    candidate
+                }
+            }
+        }
+    }
 }
