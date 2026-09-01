@@ -30,5 +30,6 @@ Kotlin과 Jetpack Compose로 제작할 Android 포트폴리오 프로젝트입�
 - [사용자 흐름](./docs/USER_FLOW.md)
 - [Android Compose 구현 계획](./docs/ANDROID_PLAN.md)
 - [예외처리 기준](./docs/EDGE_CASES.md)
+- [테스트 케이스](./docs/TEST_CASES.md)
 
 제품 기획과 구현 기준을 먼저 확정하며, 기능 구현은 아직 시작하지 않았습니다.

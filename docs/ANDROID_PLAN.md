@@ -297,6 +297,8 @@ foodAlertKey = foodItemId + alertType
 
 ## 14. 테스트 계획
 
+상세 케이스와 요구사항 추적표는 [TEST_CASES.md](./TEST_CASES.md)를 기준으로 한다. 기능 구현과 해당 자동 테스트는 같은 작업 단위에서 작성한다.
+
 ### 단위 테스트
 
 - 날짜 경계와 타임존
