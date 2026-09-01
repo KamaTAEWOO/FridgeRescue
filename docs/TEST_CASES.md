@@ -59,6 +59,7 @@
 | JVM 단위 | `TC-NOTIFY-006`, `TC-NOTIFY-010` 액션 매핑 | `QuietHoursPolicyTest`, `NotificationFoodActionReceiverTest` | `AUTOMATED` |
 | JVM 단위 | `TC-ACTION-007` | `GetStaleFoodCandidatesUseCaseTest` | `AUTOMATED` |
 | Compose UI | `TC-NOTIFY-003` | `RescueScreenTest` | `AUTOMATED` |
+| 기기 QA | `TC-NOTIFY-004`, `008`, `TC-A11Y-001~005` | `QA_REPORT_2026-09-02.md` | `PASSED` (에뮬레이터) |
 | JVM 단위 | `TC-REPORT-001~003` | `GetReportMetricsUseCaseTest` | `AUTOMATED` |
 | Compose UI | `TC-REPORT-004`, `TC-SETTINGS-001` | `RescueScreenTest` | `AUTOMATED` |
 | JVM 단위 | `TC-PRIVACY-003` | `SharedIntakeCacheCleanerTest` | `AUTOMATED` |

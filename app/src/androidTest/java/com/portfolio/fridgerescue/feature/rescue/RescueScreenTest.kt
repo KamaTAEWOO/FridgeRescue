@@ -75,6 +75,7 @@ class RescueScreenTest {
 
         setScreen(state)
 
+        composeRule.onNodeWithTag(PantryFilterTestTags.LIST).performScrollToIndex(4)
         composeRule.onNodeWithText("표시기한 · 9월 2일").assertIsDisplayed()
         composeRule.onNodeWithTag(PantryFilterTestTags.LIST).performScrollToIndex(5)
         composeRule.onNodeWithText("앱 예상 소비일 · 9월 4일").assertIsDisplayed()
@@ -379,6 +380,7 @@ class RescueScreenTest {
         composeRule.onNodeWithTag(FoodEditorTestTags.QUANTITY).performTextInput("2")
         composeRule.onNodeWithTag(FoodEditorTestTags.DATE).performTextInput("2026-09-03")
         composeRule.onNodeWithTag(FoodEditorTestTags.storage(StorageLocation.FROZEN))
+            .performScrollTo()
             .performClick()
         composeRule.onNodeWithTag(FoodEditorTestTags.SAVE).performScrollTo().performClick()
 
