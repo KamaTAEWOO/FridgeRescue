@@ -15,6 +15,7 @@ import com.portfolio.fridgerescue.core.testing.InMemoryIntakeDraftRepository
 import com.portfolio.fridgerescue.core.model.FoodDate
 import com.portfolio.fridgerescue.core.model.FoodDateSource
 import com.portfolio.fridgerescue.core.model.FoodItem
+import com.portfolio.fridgerescue.core.model.FoodEventType
 import com.portfolio.fridgerescue.core.model.FoodItemId
 import com.portfolio.fridgerescue.core.model.StorageLocation
 import com.portfolio.fridgerescue.core.model.IntakeContentType
@@ -100,14 +101,15 @@ class RescueScreenTest {
     }
 
     @Test
-    fun TC_ACTION_010_still_here_is_visible_in_persistent_history() {
+    fun TC_ACTION_010_still_here_action_is_persisted() {
         val item = foodItem(
             id = "milk",
             name = "우유",
             date = FoodDate(today.plusDays(1), FoodDateSource.APP_ESTIMATED),
         )
+        val repository = InMemoryFoodRepository(listOf(item))
         val viewModel = RescueViewModel(
-            repository = InMemoryFoodRepository(listOf(item)),
+            repository = repository,
             clock = fixedClock(),
         )
         setRoute(viewModel)
@@ -116,8 +118,8 @@ class RescueScreenTest {
         composeRule.onNodeWithText("아직 있어요").performClick()
         composeRule.onNodeWithText("실행 취소").assertIsDisplayed()
 
-        composeRule.onNodeWithText("상태 기록").performClick()
-        composeRule.onNodeWithText("아직 있다고 확인했어요").performScrollTo().assertIsDisplayed()
+        val event = runBlocking { repository.observeEvents(item.id).first { it.isNotEmpty() }.single() }
+        assertEquals(FoodEventType.STILL_HERE, event.type)
     }
 
     @Test
@@ -127,6 +129,20 @@ class RescueScreenTest {
         composeRule.onNodeWithText("지금 구조할 재료가 없어요").assertIsDisplayed()
         composeRule.onNodeWithText("재료 추가를 눌러 첫 식재료를 담아보세요.")
             .assertIsDisplayed()
+    }
+
+    @Test
+    fun TC_NOTIFY_003_denied_permission_keeps_home_badge_and_enable_action() {
+        val item = foodItem(
+            id = "urgent",
+            name = "시금치",
+            date = FoodDate(today, FoodDateSource.APP_ESTIMATED),
+        )
+
+        setScreen(contentState(item), notificationsEnabled = false)
+
+        composeRule.onNodeWithText("1개").assertIsDisplayed()
+        composeRule.onNodeWithText("요약 알림 켜기").assertIsDisplayed()
     }
 
     @Test
@@ -304,6 +320,7 @@ class RescueScreenTest {
     private fun setScreen(
         uiState: RescueUiState,
         onAction: (RescueAction) -> Unit = {},
+        notificationsEnabled: Boolean = true,
     ) {
         composeRule.setContent {
             FridgeRescueTheme {
@@ -311,6 +328,7 @@ class RescueScreenTest {
                     uiState = uiState,
                     snackbarHostState = SnackbarHostState(),
                     onAction = onAction,
+                    notificationsEnabled = notificationsEnabled,
                 )
             }
         }

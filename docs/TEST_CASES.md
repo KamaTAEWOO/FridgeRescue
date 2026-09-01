@@ -54,10 +54,12 @@
 | Room 마이그레이션·트랜잭션 | `TC-DATA-014`, `015` | `DatabaseMigrationTest`, `FoodItemDaoTest` | `AUTOMATED` |
 | Compose UI | `TC-UI-001`, `AT-001` | `RescueScreenTest` | `AUTOMATED` |
 | Compose UI | `TC-INTAKE-012`, `TC-OCR-006` | `RescueScreenTest` | `AUTOMATED` |
+| JVM 단위 | `TC-NOTIFY-001`, `TC-ACTION-006`, `TC-DATE-003` | `GetNotificationCandidatesUseCaseTest` | `AUTOMATED` |
+| Compose UI | `TC-NOTIFY-003` | `RescueScreenTest` | `AUTOMATED` |
 
-- 자동 테스트: 52개
+- 자동 테스트: 56개
 - 최근 검증 환경: `FridgeRescue_API_36`, Android API 36
-- 최근 결과: JVM 23개 통과, Room·Intent·Compose 계측 29개 통과
+- 최근 결과: JVM 26개 통과, Room·Intent·Compose 계측 30개 통과
 
 ## 3. 자동화 계층
 

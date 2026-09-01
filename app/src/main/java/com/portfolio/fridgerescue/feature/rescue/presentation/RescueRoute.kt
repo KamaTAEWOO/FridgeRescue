@@ -1,14 +1,23 @@
 package com.portfolio.fridgerescue.feature.rescue.presentation
 
+import android.Manifest
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.core.app.NotificationManagerCompat
 import com.portfolio.fridgerescue.R
 import com.portfolio.fridgerescue.core.model.FoodActionType
 
@@ -17,6 +26,13 @@ fun RescueRoute(
     viewModel: RescueViewModel = viewModel(factory = RescueViewModel.Factory),
     onPickReceipt: () -> Unit = {},
 ) {
+    val context = LocalContext.current
+    var notificationsEnabled by rememberSaveable {
+        mutableStateOf(NotificationManagerCompat.from(context).areNotificationsEnabled())
+    }
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { granted -> notificationsEnabled = granted }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val consumedMessage = stringResource(R.string.action_consumed_message)
@@ -78,5 +94,14 @@ fun RescueRoute(
         snackbarHostState = snackbarHostState,
         onAction = viewModel::onAction,
         onPickReceipt = onPickReceipt,
+        notificationsEnabled = notificationsEnabled,
+        onRequestNotificationPermission = {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            } else {
+                notificationsEnabled = NotificationManagerCompat.from(context)
+                    .areNotificationsEnabled()
+            }
+        },
     )
 }

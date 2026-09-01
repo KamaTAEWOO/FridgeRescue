@@ -5,10 +5,16 @@ import com.portfolio.fridgerescue.core.data.database.FridgeRescueDatabase
 import com.portfolio.fridgerescue.core.data.repository.FoodRepository
 import com.portfolio.fridgerescue.core.data.repository.IntakeDraftRepository
 import com.portfolio.fridgerescue.core.data.repository.RoomIntakeDraftRepository
+import com.portfolio.fridgerescue.feature.notification.ExpiryNotificationWorker
 import com.portfolio.fridgerescue.core.data.repository.RoomFoodRepository
 
 class FridgeRescueApplication : Application() {
     val container: AppContainer by lazy { DefaultAppContainer(this) }
+
+    override fun onCreate() {
+        super.onCreate()
+        ExpiryNotificationWorker.schedule(this)
+    }
 }
 
 interface AppContainer {

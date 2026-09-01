@@ -53,6 +53,8 @@ fun RescueScreen(
     snackbarHostState: SnackbarHostState,
     onAction: (RescueAction) -> Unit,
     onPickReceipt: () -> Unit = {},
+    notificationsEnabled: Boolean = true,
+    onRequestNotificationPermission: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -71,6 +73,8 @@ fun RescueScreen(
                 is RescueUiState.Content -> RescueContent(
                     uiState = uiState,
                     onAction = onAction,
+                    notificationsEnabled = notificationsEnabled,
+                    onRequestNotificationPermission = onRequestNotificationPermission,
                 )
             }
         }
@@ -136,6 +140,8 @@ private fun LoadingContent() {
 private fun RescueContent(
     uiState: RescueUiState.Content,
     onAction: (RescueAction) -> Unit,
+    notificationsEnabled: Boolean,
+    onRequestNotificationPermission: () -> Unit,
 ) {
     LazyColumn(
         modifier = Modifier
@@ -156,6 +162,12 @@ private fun RescueContent(
                 urgentCount = uiState.urgentCount,
                 needsReviewCount = uiState.needsReviewCount,
             )
+        }
+
+        if (uiState.urgentCount > 0 && !notificationsEnabled) {
+            item {
+                NotificationPermissionCard(onRequestNotificationPermission)
+            }
         }
 
         item {
@@ -197,6 +209,32 @@ private fun RescueContent(
         }
 
         item { Spacer(modifier = Modifier.height(16.dp)) }
+    }
+}
+
+@Composable
+private fun NotificationPermissionCard(onRequestPermission: () -> Unit) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = MaterialTheme.colorScheme.secondaryContainer,
+        shape = RoundedCornerShape(22.dp),
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = stringResource(R.string.notification_permission_title),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+            )
+            Text(
+                text = stringResource(R.string.notification_permission_description),
+                modifier = Modifier.padding(top = 4.dp),
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
+            )
+            androidx.compose.material3.Button(
+                onClick = onRequestPermission,
+                modifier = Modifier.padding(top = 10.dp),
+            ) { Text(stringResource(R.string.notification_permission_action)) }
+        }
     }
 }
 
