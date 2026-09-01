@@ -22,6 +22,7 @@ import com.portfolio.fridgerescue.R
 @Composable
 fun IntakeOptionsSheet(
     onDismiss: () -> Unit,
+    onCaptureReceipt: () -> Unit,
     onPickReceipt: () -> Unit,
     onManualEntry: () -> Unit,
 ) {
@@ -42,7 +43,10 @@ fun IntakeOptionsSheet(
                 text = stringResource(R.string.import_share_guide),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            Button(onClick = onPickReceipt, modifier = Modifier.fillMaxWidth()) {
+            Button(onClick = onCaptureReceipt, modifier = Modifier.fillMaxWidth()) {
+                Text(stringResource(R.string.import_capture_receipt))
+            }
+            OutlinedButton(onClick = onPickReceipt, modifier = Modifier.fillMaxWidth()) {
                 Text(stringResource(R.string.import_pick_receipt))
             }
             OutlinedButton(onClick = onManualEntry, modifier = Modifier.fillMaxWidth()) {

@@ -102,7 +102,8 @@
     <string name="intake_batch_saved">선택한 식재료 %1$d개를 냉장고에 담았어요</string>
     <string name="import_title">구매내역 가져오기</string>
     <string name="import_share_guide">온라인 마트나 영수증 화면에서 공유를 누른 뒤 ‘냉장고 구조대’를 선택하면 여러 재료를 한 번에 담을 수 있어요.</string>
-    <string name="import_pick_receipt">종이 영수증 사진 선택</string>
+    <string name="import_capture_receipt">종이 영수증 촬영</string>
+    <string name="import_pick_receipt">사진에서 선택</string>
     <string name="import_manual">직접 입력</string>
     <string name="rescue_import">구매내역 가져오기</string>
     <string name="notification_channel_name">임박 식재료 요약</string>

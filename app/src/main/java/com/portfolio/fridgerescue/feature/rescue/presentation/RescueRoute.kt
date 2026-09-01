@@ -31,6 +31,7 @@ import com.portfolio.fridgerescue.feature.report.AppSection
 @Composable
 fun RescueRoute(
     viewModel: RescueViewModel = viewModel(factory = RescueViewModel.Factory),
+    onCaptureReceipt: () -> Unit = {},
     onPickReceipt: () -> Unit = {},
 ) {
     val context = LocalContext.current
@@ -115,6 +116,7 @@ fun RescueRoute(
         snackbarHostState = snackbarHostState,
         onAction = viewModel::onAction,
         onPickReceipt = onPickReceipt,
+        onCaptureReceipt = onCaptureReceipt,
         notificationsEnabled = notificationsEnabled,
         onRequestNotificationPermission = {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {

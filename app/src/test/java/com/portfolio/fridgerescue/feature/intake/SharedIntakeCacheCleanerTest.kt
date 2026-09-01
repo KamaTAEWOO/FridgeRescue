@@ -25,9 +25,15 @@ class SharedIntakeCacheCleanerTest {
                 setLastModified(now.minus(Duration.ofHours(23)).toEpochMilli())
             }
             val unrelated = File(root, "keep.txt").apply { writeText("keep") }
+            val oldCapture = File(root, "receipt-capture").apply { mkdirs() }
+                .resolve("expired.jpg").apply {
+                    writeText("old capture")
+                    setLastModified(now.minus(Duration.ofHours(25)).toEpochMilli())
+                }
 
-            assertEquals(1, SharedIntakeCacheCleaner.clean(root, now))
+            assertEquals(2, SharedIntakeCacheCleaner.clean(root, now))
             assertFalse(expired.exists())
+            assertFalse(oldCapture.exists())
             assertTrue(recent.exists())
             assertTrue(unrelated.exists())
         } finally {

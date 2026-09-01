@@ -276,7 +276,8 @@ class RescueScreenTest {
         setRoute(viewModel)
 
         composeRule.onNodeWithText("구매내역 가져오기").performClick()
-        composeRule.onNodeWithText("종이 영수증 사진 선택").assertIsDisplayed()
+        composeRule.onNodeWithText("종이 영수증 촬영").assertIsDisplayed()
+        composeRule.onNodeWithText("사진에서 선택").assertIsDisplayed()
         composeRule.onNodeWithText("직접 입력").performClick()
 
         composeRule.onNodeWithText("새 식재료 추가").assertIsDisplayed()

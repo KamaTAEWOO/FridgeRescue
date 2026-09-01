@@ -8,10 +8,9 @@ object SharedIntakeCacheCleaner {
     private val retention = Duration.ofHours(24)
 
     fun clean(cacheRoot: File, now: Instant = Instant.now()): Int {
-        val intakeDirectory = File(cacheRoot, "shared-intake")
         val cutoff = now.minus(retention).toEpochMilli()
-        return intakeDirectory.listFiles()
-            .orEmpty()
+        return listOf("shared-intake", "receipt-capture")
+            .flatMap { directory -> File(cacheRoot, directory).listFiles().orEmpty().asList() }
             .filter { it.isFile && it.lastModified() < cutoff }
             .count(File::delete)
     }

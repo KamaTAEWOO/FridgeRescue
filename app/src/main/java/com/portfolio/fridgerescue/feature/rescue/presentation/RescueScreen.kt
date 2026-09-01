@@ -67,6 +67,7 @@ fun RescueScreen(
     snackbarHostState: SnackbarHostState,
     onAction: (RescueAction) -> Unit,
     onPickReceipt: () -> Unit = {},
+    onCaptureReceipt: () -> Unit = {},
     notificationsEnabled: Boolean = true,
     onRequestNotificationPermission: () -> Unit = {},
     selectedSection: AppSection = AppSection.HOME,
@@ -166,6 +167,10 @@ fun RescueScreen(
     if (showImportOptions) {
         IntakeOptionsSheet(
             onDismiss = { onAction(RescueAction.DismissImportOptions) },
+            onCaptureReceipt = {
+                onAction(RescueAction.DismissImportOptions)
+                onCaptureReceipt()
+            },
             onPickReceipt = {
                 onAction(RescueAction.DismissImportOptions)
                 onPickReceipt()
