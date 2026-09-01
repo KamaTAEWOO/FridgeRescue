@@ -288,6 +288,7 @@ class RescueScreenTest {
         composeRule.onNodeWithText("구매내역 가져오기").performClick()
         composeRule.onNodeWithText("종이 영수증 촬영").assertIsDisplayed()
         composeRule.onNodeWithText("사진에서 선택").assertIsDisplayed()
+        composeRule.onNodeWithText("일반·GS1 바코드 스캔").assertIsDisplayed()
         composeRule.onNodeWithText("직접 입력").performClick()
 
         composeRule.onNodeWithText("새 식재료 추가").assertIsDisplayed()
@@ -526,6 +527,37 @@ class RescueScreenTest {
             RescueAction.UpdateIntakeCandidate(candidate.id, "부침용 두부", "3"),
             capturedAction,
         )
+    }
+
+    @Test
+    fun TC_BARCODE_007_gs1_displayed_date_candidate_is_visible_for_review() {
+        val draft = IntakeDraft(
+            id = "grouped",
+            contentType = IntakeContentType.TEXT,
+            mimeType = "application/vnd.barcode.DATA_MATRIX",
+            textContent = "(01)08801234567890(17)270930",
+            cachedFilePath = null,
+            status = IntakeDraftStatus.READY,
+            errorCode = null,
+            createdAt = Instant.parse("2026-09-01T00:00:00Z"),
+            updatedAt = Instant.parse("2026-09-01T00:00:00Z"),
+        )
+        val candidate = intakeCandidate(
+            "GTIN 08801234567890",
+            IntakeCandidateGroup.REVIEW,
+            false,
+            0,
+        ).copy(displayedDate = LocalDate.of(2027, 9, 30))
+
+        setScreen(
+            contentState().copy(
+                intakeReview = IntakeReviewUiState(draft, listOf(candidate)),
+            ),
+        )
+
+        composeRule.onNodeWithText("표시기한 후보 2027-09-30", substring = true)
+            .performScrollTo()
+            .assertIsDisplayed()
     }
 
     private fun setScreen(

@@ -21,4 +21,5 @@ data class IntakeCandidateEntity(
     val position: Int,
     @ColumnInfo(name = "storage_location") val storageLocation: String,
     @ColumnInfo(name = "estimated_shelf_life_days") val estimatedShelfLifeDays: Int?,
+    @ColumnInfo(name = "displayed_date") val displayedDate: String?,
 )

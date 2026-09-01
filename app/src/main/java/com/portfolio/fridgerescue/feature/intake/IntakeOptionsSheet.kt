@@ -24,6 +24,7 @@ fun IntakeOptionsSheet(
     onDismiss: () -> Unit,
     onCaptureReceipt: () -> Unit,
     onPickReceipt: () -> Unit,
+    onScanBarcode: () -> Unit,
     onManualEntry: () -> Unit,
 ) {
     ModalBottomSheet(onDismissRequest = onDismiss) {
@@ -48,6 +49,9 @@ fun IntakeOptionsSheet(
             }
             OutlinedButton(onClick = onPickReceipt, modifier = Modifier.fillMaxWidth()) {
                 Text(stringResource(R.string.import_pick_receipt))
+            }
+            OutlinedButton(onClick = onScanBarcode, modifier = Modifier.fillMaxWidth()) {
+                Text(stringResource(R.string.import_scan_barcode))
             }
             OutlinedButton(onClick = onManualEntry, modifier = Modifier.fillMaxWidth()) {
                 Text(stringResource(R.string.import_manual))

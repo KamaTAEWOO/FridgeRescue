@@ -33,6 +33,7 @@ fun RescueRoute(
     viewModel: RescueViewModel = viewModel(factory = RescueViewModel.Factory),
     onCaptureReceipt: () -> Unit = {},
     onPickReceipt: () -> Unit = {},
+    onScanBarcode: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -117,6 +118,7 @@ fun RescueRoute(
         onAction = viewModel::onAction,
         onPickReceipt = onPickReceipt,
         onCaptureReceipt = onCaptureReceipt,
+        onScanBarcode = onScanBarcode,
         notificationsEnabled = notificationsEnabled,
         onRequestNotificationPermission = {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {

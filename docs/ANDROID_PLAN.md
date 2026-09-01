@@ -117,7 +117,7 @@ feature/intake/
 | 백그라운드 | WorkManager | 임박 알림 |
 | 문서 스캔 | ML Kit Document Scanner | 종이 영수증 기능 |
 | OCR | ML Kit Korean Text Recognition v2 | 공유 이미지 분석 |
-| 바코드 | ML Kit Barcode Scanning | P1 보조 입력 |
+| 바코드 | Google Code Scanner | 카메라 권한 없는 P1 보조 입력 |
 | 이미지 선택 | Android Photo Picker | 갤러리 입력 |
 
 라이브러리는 기능이 시작될 때만 추가한다. 계획만으로 의존성을 미리 늘리지 않는다.
@@ -415,4 +415,4 @@ foodAlertKey = foodItemId + alertType
 - [Compose에서 공유 콘텐츠 받기](https://developer.android.com/develop/ui/compose/sharing/receive)
 - [ML Kit Document Scanner](https://developers.google.com/ml-kit/vision/doc-scanner/android)
 - [ML Kit Text Recognition v2](https://developers.google.com/ml-kit/vision/text-recognition/v2)
-- [ML Kit Barcode Scanning](https://developers.google.com/ml-kit/vision/barcode-scanning/android)
+- [Google Code Scanner](https://developers.google.com/ml-kit/vision/barcode-scanning/code-scanner)

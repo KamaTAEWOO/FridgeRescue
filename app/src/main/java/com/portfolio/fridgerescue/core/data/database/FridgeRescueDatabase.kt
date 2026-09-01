@@ -14,7 +14,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         IntakeDraftEntity::class,
         IntakeCandidateEntity::class,
     ],
-    version = 4,
+    version = 5,
     exportSchema = true,
 )
 abstract class FridgeRescueDatabase : RoomDatabase() {
@@ -30,7 +30,7 @@ abstract class FridgeRescueDatabase : RoomDatabase() {
             context = context.applicationContext,
             klass = FridgeRescueDatabase::class.java,
             name = DATABASE_NAME,
-        ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4).build()
+        ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5).build()
 
         val MIGRATION_1_2 = object : Migration(1, 2) {
             override fun migrate(db: SupportSQLiteDatabase) {
@@ -114,6 +114,12 @@ abstract class FridgeRescueDatabase : RoomDatabase() {
                     "CREATE INDEX IF NOT EXISTS `index_intake_candidates_draft_id_position` " +
                         "ON `intake_candidates` (`draft_id`, `position`)",
                 )
+            }
+        }
+
+        val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE `intake_candidates` ADD COLUMN `displayed_date` TEXT")
             }
         }
     }

@@ -5,7 +5,7 @@
 ## 구현된 핵심 경험
 
 - Android Sharesheet의 텍스트·이미지·PDF 수신과 프로세스 종료 후 초안 복구
-- ML Kit 한국어 온디바이스 OCR, PDF 페이지 렌더링, 영수증 카메라·Photo Picker·직접 입력 대체 경로
+- ML Kit 한국어 온디바이스 OCR, Google Code Scanner 일반·GS1 바코드, PDF 페이지 렌더링, 영수증 카메라·Photo Picker·직접 입력 대체 경로
 - 식품·비식품 선별, 수량 추출, 같은 주문 재공유 중복 경고, 선택 품목 일괄 저장
 - Room 기반 냉장고, 표시 날짜와 앱 예상 소비일 구분, 임박도·개봉·고정 우선 구조 큐
 - 먹음·아직 있음·일부 사용·버림 이력, 선택 폐기 사유, 멱등 처리와 실행 취소
@@ -17,7 +17,7 @@
 
 - Kotlin 2.3, Jetpack Compose + Material 3, UDF + ViewModel + StateFlow
 - Room 2.8, WorkManager 2.11, Preferences DataStore 1.2
-- ML Kit Text Recognition v2 한국어 번들 모델, `PdfRenderer`, Photo Picker, FileProvider
+- ML Kit Text Recognition v2 한국어 번들 모델, Google Code Scanner 16.1, `PdfRenderer`, Photo Picker, FileProvider
 - Android 8.0(API 26) 이상, compile/target SDK 36, JDK 17
 
 ```text
@@ -32,7 +32,7 @@
 
 ## 검증
 
-- 자동 테스트 79개: JVM 40개, Room·Intent·Compose 계측 39개
+- 자동 테스트 87개: JVM 46개, Room·Intent·Compose 계측 41개
 - API 36 에뮬레이터에서 전체 테스트, Lint, Debug APK 빌드 통과
 - 실제 생성 영수증 이미지에서 `두부 2개`, `시금치 1봉` OCR·선별 확인
 - GitHub Actions에서 단위 테스트, Android Lint, APK 빌드 수행
@@ -50,4 +50,4 @@
 - [예외처리 기준](./docs/EDGE_CASES.md)
 - [테스트 케이스](./docs/TEST_CASES.md)
 
-서버·가족 공유, 바코드 보조 입력, 검색·필터는 로컬 MVP 이후 범위입니다.
+서버·가족 공유는 로컬 기능 완성 이후 범위입니다.

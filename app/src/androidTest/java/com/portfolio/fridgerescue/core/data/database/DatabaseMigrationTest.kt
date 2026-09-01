@@ -75,6 +75,28 @@ class DatabaseMigrationTest {
         }
     }
 
+    @Test
+    fun TC_DATA_017_migration_4_to_5_adds_optional_displayed_date() {
+        openHelper(version = 3).use { it.writableDatabase }
+        openHelper(version = 4).use { helper ->
+            helper.writableDatabase.execSQL(
+                "INSERT INTO intake_candidates VALUES " +
+                    "('candidate', 'draft', '두부', '두부', 1, 'MANAGE', 1, NULL, 0, " +
+                    "'REFRIGERATED', 5)",
+            )
+        }
+
+        openHelper(version = 5).use { helper ->
+            val cursor = helper.writableDatabase.query(
+                "SELECT displayed_date FROM intake_candidates WHERE id = 'candidate'",
+            )
+            cursor.use {
+                it.moveToFirst()
+                assertEquals(null, it.getString(0))
+            }
+        }
+    }
+
     private fun openHelper(version: Int): SupportSQLiteOpenHelper =
         FrameworkSQLiteOpenHelperFactory().create(
             SupportSQLiteOpenHelper.Configuration.builder(context)
@@ -90,9 +112,18 @@ class DatabaseMigrationTest {
                             oldVersion: Int,
                             newVersion: Int,
                         ) {
-                            if (oldVersion < 2) FridgeRescueDatabase.MIGRATION_1_2.migrate(db)
-                            if (oldVersion < 3) FridgeRescueDatabase.MIGRATION_2_3.migrate(db)
-                            if (oldVersion < 4) FridgeRescueDatabase.MIGRATION_3_4.migrate(db)
+                            if (oldVersion < 2 && newVersion >= 2) {
+                                FridgeRescueDatabase.MIGRATION_1_2.migrate(db)
+                            }
+                            if (oldVersion < 3 && newVersion >= 3) {
+                                FridgeRescueDatabase.MIGRATION_2_3.migrate(db)
+                            }
+                            if (oldVersion < 4 && newVersion >= 4) {
+                                FridgeRescueDatabase.MIGRATION_3_4.migrate(db)
+                            }
+                            if (oldVersion < 5 && newVersion >= 5) {
+                                FridgeRescueDatabase.MIGRATION_4_5.migrate(db)
+                            }
                         }
                     },
                 )

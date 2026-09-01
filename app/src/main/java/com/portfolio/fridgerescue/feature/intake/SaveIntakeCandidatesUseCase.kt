@@ -23,13 +23,20 @@ class SaveIntakeCandidatesUseCase(
             val estimatedDate = candidate.estimatedShelfLifeDays?.let { days ->
                 FoodDate(today.plusDays(days.toLong()), FoodDateSource.APP_ESTIMATED)
             }
+            val displayedDate = candidate.displayedDate?.let { date ->
+                FoodDate(date, FoodDateSource.MANUFACTURER_DISPLAYED)
+            }
             FoodItem(
                 id = idFactory(),
                 name = candidate.normalizedName,
                 quantity = candidate.quantity,
                 storageLocation = candidate.storageLocation,
-                dates = listOfNotNull(estimatedDate),
-                status = if (estimatedDate == null) FoodStatus.NEEDS_REVIEW else FoodStatus.ACTIVE,
+                dates = listOfNotNull(displayedDate, estimatedDate),
+                status = if (displayedDate == null && estimatedDate == null) {
+                    FoodStatus.NEEDS_REVIEW
+                } else {
+                    FoodStatus.ACTIVE
+                },
             )
         }
         if (items.isEmpty()) return 0

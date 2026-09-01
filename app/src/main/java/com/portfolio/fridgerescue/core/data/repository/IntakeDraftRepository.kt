@@ -12,6 +12,7 @@ import com.portfolio.fridgerescue.core.model.IntakeDraftStatus
 import com.portfolio.fridgerescue.core.model.StorageLocation
 import java.time.Clock
 import java.time.Instant
+import java.time.LocalDate
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
@@ -110,6 +111,7 @@ private fun IntakeCandidateEntity.toDomain() = IntakeCandidate(
     storageLocation = runCatching { StorageLocation.valueOf(storageLocation) }
         .getOrDefault(StorageLocation.REFRIGERATED),
     estimatedShelfLifeDays = estimatedShelfLifeDays,
+    displayedDate = displayedDate?.let(LocalDate::parse),
 )
 
 private fun IntakeCandidate.toEntity() = IntakeCandidateEntity(
@@ -124,4 +126,5 @@ private fun IntakeCandidate.toEntity() = IntakeCandidateEntity(
     position = position,
     storageLocation = storageLocation.name,
     estimatedShelfLifeDays = estimatedShelfLifeDays,
+    displayedDate = displayedDate?.toString(),
 )

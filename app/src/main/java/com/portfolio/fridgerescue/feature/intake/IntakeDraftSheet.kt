@@ -241,6 +241,12 @@ private fun EditableCandidate(
                                 stringResource(R.string.food_quantity_format, it)
                             },
                             candidate.reason,
+                            candidate.displayedDate?.let {
+                                stringResource(
+                                    R.string.intake_candidate_displayed_date,
+                                    it.toString(),
+                                )
+                            },
                             if (isDuplicate) stringResource(R.string.intake_duplicate_existing) else null,
                         ).joinToString(" · ")
                         if (metadata.isNotEmpty()) {

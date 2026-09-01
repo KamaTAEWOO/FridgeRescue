@@ -57,10 +57,38 @@ class SaveIntakeCandidatesUseCaseTest {
         assertEquals(emptyList<Any>(), repository.foodItems.first())
     }
 
+    @Test
+    fun TC_BARCODE_006_gs1_displayed_date_is_saved_without_estimation() = runBlocking {
+        val repository = InMemoryFoodRepository()
+        val useCase = SaveIntakeCandidatesUseCase(
+            repository = repository,
+            clock = fixedClock(),
+            idFactory = { FoodItemId("barcode-food") },
+            operationIdFactory = { "barcode-batch" },
+        )
+
+        useCase(
+            listOf(
+                candidate(
+                    name = "우유",
+                    selected = true,
+                    shelfLifeDays = null,
+                    displayedDate = LocalDate.of(2026, 9, 10),
+                ),
+            ),
+        )
+
+        val saved = repository.foodItems.first().single()
+        assertEquals(LocalDate.of(2026, 9, 10), saved.effectiveDate()?.value)
+        assertEquals(FoodDateSource.MANUFACTURER_DISPLAYED, saved.effectiveDate()?.source)
+        assertEquals(FoodStatus.ACTIVE, saved.status)
+    }
+
     private fun candidate(
         name: String,
         selected: Boolean,
         shelfLifeDays: Int?,
+        displayedDate: LocalDate? = null,
     ) = IntakeCandidate(
         id = "candidate-$name",
         draftId = "draft",
@@ -73,6 +101,7 @@ class SaveIntakeCandidatesUseCaseTest {
         position = 0,
         storageLocation = StorageLocation.REFRIGERATED,
         estimatedShelfLifeDays = shelfLifeDays,
+        displayedDate = displayedDate,
     )
 
     private fun fixedClock() = Clock.fixed(

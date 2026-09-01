@@ -1,5 +1,7 @@
 package com.portfolio.fridgerescue.core.model
 
+import java.time.LocalDate
+
 enum class IntakeCandidateGroup { MANAGE, REVIEW, EXCLUDED }
 
 data class IntakeCandidate(
@@ -14,4 +16,5 @@ data class IntakeCandidate(
     val position: Int,
     val storageLocation: StorageLocation,
     val estimatedShelfLifeDays: Int?,
+    val displayedDate: LocalDate? = null,
 )

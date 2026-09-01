@@ -74,6 +74,7 @@ fun RescueScreen(
     onAction: (RescueAction) -> Unit,
     onPickReceipt: () -> Unit = {},
     onCaptureReceipt: () -> Unit = {},
+    onScanBarcode: () -> Unit = {},
     notificationsEnabled: Boolean = true,
     onRequestNotificationPermission: () -> Unit = {},
     selectedSection: AppSection = AppSection.HOME,
@@ -183,6 +184,10 @@ fun RescueScreen(
             onPickReceipt = {
                 onAction(RescueAction.DismissImportOptions)
                 onPickReceipt()
+            },
+            onScanBarcode = {
+                onAction(RescueAction.DismissImportOptions)
+                onScanBarcode()
             },
             onManualEntry = { onAction(RescueAction.StartAddFood) },
         )
