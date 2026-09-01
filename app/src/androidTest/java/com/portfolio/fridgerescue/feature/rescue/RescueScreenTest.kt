@@ -90,6 +90,27 @@ class RescueScreenTest {
     }
 
     @Test
+    fun TC_ACTION_010_still_here_is_visible_in_persistent_history() {
+        val item = foodItem(
+            id = "milk",
+            name = "우유",
+            date = FoodDate(today.plusDays(1), FoodDateSource.APP_ESTIMATED),
+        )
+        val viewModel = RescueViewModel(
+            repository = InMemoryFoodRepository(listOf(item)),
+            clock = fixedClock(),
+        )
+        setRoute(viewModel)
+
+        composeRule.onNodeWithText("상태 기록").performClick()
+        composeRule.onNodeWithText("아직 있어요").performClick()
+        composeRule.onNodeWithText("실행 취소").assertIsDisplayed()
+
+        composeRule.onNodeWithText("상태 기록").performClick()
+        composeRule.onNodeWithText("아직 있다고 확인했어요").performScrollTo().assertIsDisplayed()
+    }
+
+    @Test
     fun TC_UI_009_empty_queue_shows_next_step_guidance() {
         setScreen(contentState())
 

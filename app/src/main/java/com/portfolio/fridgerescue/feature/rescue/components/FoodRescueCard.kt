@@ -30,6 +30,7 @@ import com.portfolio.fridgerescue.feature.rescue.domain.RescueUrgency
 fun FoodRescueCard(
     queueItem: RescueQueueItem,
     onEdit: () -> Unit,
+    onOpenActions: () -> Unit,
     onMarkConsumed: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -99,9 +100,19 @@ fun FoodRescueCard(
                         fontWeight = FontWeight.Bold,
                     )
                 }
+                OutlinedButton(
+                    onClick = onOpenActions,
+                    modifier = Modifier.weight(1.25f),
+                ) {
+                    Text(
+                        text = stringResource(R.string.rescue_more_actions),
+                        modifier = Modifier.padding(vertical = 3.dp),
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
                 Button(
                     onClick = onMarkConsumed,
-                    modifier = Modifier.weight(2f),
+                    modifier = Modifier.weight(1.5f),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary,
                     ),

@@ -43,10 +43,13 @@
 | JVM 단위 | `TC-EDITOR-001~006` | `SaveFoodItemUseCaseTest` | `AUTOMATED` |
 | Room DAO | `TC-DATA-010~012` | `FoodItemDaoTest` | `AUTOMATED` |
 | Compose UI | `TC-EDITOR-007`, `008` | `RescueScreenTest` | `AUTOMATED` |
+| Room 트랜잭션 | `TC-ACTION-001`, `004`, `009` | `FoodItemDaoTest` | `AUTOMATED` |
+| Room 마이그레이션 | `TC-DATA-008` | `DatabaseMigrationTest` | `AUTOMATED` |
+| Compose UI | `TC-ACTION-010` | `RescueScreenTest` | `AUTOMATED` |
 
-- 자동 테스트: 25개
+- 자동 테스트: 30개
 - 최근 검증 환경: `FridgeRescue_API_36`, Android API 36
-- 최근 결과: JVM 17개 통과, Room DAO 3개·Compose UI 5개 통과
+- 최근 결과: JVM 17개 통과, Room·마이그레이션 7개·Compose UI 6개 통과
 
 ## 3. 자동화 계층
 

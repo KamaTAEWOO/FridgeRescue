@@ -2,6 +2,8 @@ package com.portfolio.fridgerescue.core.data.database
 
 import com.portfolio.fridgerescue.core.model.FoodDate
 import com.portfolio.fridgerescue.core.model.FoodDateSource
+import com.portfolio.fridgerescue.core.model.FoodEvent
+import com.portfolio.fridgerescue.core.model.FoodEventType
 import com.portfolio.fridgerescue.core.model.FoodItem
 import com.portfolio.fridgerescue.core.model.FoodItemId
 import com.portfolio.fridgerescue.core.model.FoodStatus
@@ -50,6 +52,18 @@ fun FoodItem.toEntity(updatedAtEpochMillis: Long): FoodItemEntity = FoodItemEnti
     isPinned = isPinned,
     status = status.name,
     updatedAtEpochMillis = updatedAtEpochMillis,
+)
+
+fun FoodEventEntity.toDomain(): FoodEvent = FoodEvent(
+    id = eventId,
+    operationId = operationId,
+    foodItemId = FoodItemId(foodItemId),
+    type = enumValues<FoodEventType>().firstOrNull { it.name == type } ?: FoodEventType.UPDATED,
+    previousStatus = previousStatus?.toFoodStatus(),
+    newStatus = newStatus?.toFoodStatus(),
+    discardReason = discardReason,
+    occurredAt = java.time.Instant.ofEpochMilli(occurredAtEpochMillis),
+    revertsEventId = revertsEventId,
 )
 
 private fun String?.toLocalDateOrNull(): LocalDate? =

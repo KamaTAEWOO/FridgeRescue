@@ -80,6 +80,10 @@ fun RescueScreen(
             onAction = onAction,
         )
     }
+    val detail = (uiState as? RescueUiState.Content)?.detail
+    if (detail != null) {
+        FoodDetailSheet(state = detail, onAction = onAction)
+    }
 }
 
 @Composable
@@ -148,6 +152,9 @@ private fun RescueContent(
                     queueItem = queueItem,
                     onEdit = {
                         onAction(RescueAction.StartEditFood(queueItem.foodItem.id))
+                    },
+                    onOpenActions = {
+                        onAction(RescueAction.OpenFoodActions(queueItem.foodItem.id))
                     },
                     onMarkConsumed = {
                         onAction(RescueAction.MarkConsumed(queueItem.foodItem.id))

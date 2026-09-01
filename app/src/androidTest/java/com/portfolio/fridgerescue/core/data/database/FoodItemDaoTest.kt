@@ -5,10 +5,15 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.portfolio.fridgerescue.core.data.repository.RoomFoodRepository
+import com.portfolio.fridgerescue.core.model.FoodActionRequest
+import com.portfolio.fridgerescue.core.model.FoodActionType
 import com.portfolio.fridgerescue.core.model.FoodDate
 import com.portfolio.fridgerescue.core.model.FoodDateSource
 import com.portfolio.fridgerescue.core.model.FoodItem
 import com.portfolio.fridgerescue.core.model.FoodItemId
+import com.portfolio.fridgerescue.core.model.FoodEventType
+import com.portfolio.fridgerescue.core.model.FoodMutationResult
+import com.portfolio.fridgerescue.core.model.FoodStatus
 import com.portfolio.fridgerescue.core.model.StorageLocation
 import java.time.Clock
 import java.time.Instant
@@ -19,6 +24,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -36,7 +42,9 @@ class FoodItemDaoTest {
             FridgeRescueDatabase::class.java,
         ).build()
         repository = RoomFoodRepository(
+            database = database,
             foodItemDao = database.foodItemDao(),
+            foodEventDao = database.foodEventDao(),
             clock = Clock.fixed(Instant.parse("2026-09-01T00:00:00Z"), ZoneOffset.UTC),
         )
     }
@@ -77,6 +85,56 @@ class FoodItemDaoTest {
     @Test
     fun TC_DATA_012_unknown_id_returns_null() = runBlocking {
         assertNull(repository.findById(FoodItemId("missing")))
+    }
+
+    @Test
+    fun TC_ACTION_001_consume_is_stored_with_event_and_can_be_undone() = runBlocking {
+        val original = foodItem()
+        repository.upsert(original)
+
+        val result = repository.performAction(
+            FoodActionRequest(original.id, FoodActionType.CONSUME, "consume-once"),
+        ) as FoodMutationResult.Applied
+
+        assertEquals(FoodStatus.CONSUMED, repository.findById(original.id)?.status)
+        assertEquals(FoodEventType.CONSUMED, result.event.type)
+        assertEquals(result.event, repository.observeEvents(original.id).first().single())
+
+        val undo = repository.undo(result.event.id, "undo-once")
+
+        assertTrue(undo is FoodMutationResult.Applied)
+        assertEquals(FoodStatus.ACTIVE, repository.findById(original.id)?.status)
+        assertEquals(
+            listOf(FoodEventType.UNDONE, FoodEventType.CONSUMED),
+            repository.observeEvents(original.id).first().map { it.type },
+        )
+    }
+
+    @Test
+    fun TC_ACTION_004_same_operation_id_is_applied_only_once() = runBlocking {
+        val original = foodItem()
+        repository.upsert(original)
+        val request = FoodActionRequest(original.id, FoodActionType.CONSUME, "same-operation")
+
+        val first = repository.performAction(request)
+        val second = repository.performAction(request)
+
+        assertTrue(first is FoodMutationResult.Applied)
+        assertTrue(second is FoodMutationResult.Duplicate)
+        assertEquals(1, repository.observeEvents(original.id).first().size)
+    }
+
+    @Test
+    fun TC_ACTION_009_discard_reason_can_be_empty() = runBlocking {
+        val original = foodItem()
+        repository.upsert(original)
+
+        val result = repository.performAction(
+            FoodActionRequest(original.id, FoodActionType.DISCARD, "discard", "   "),
+        ) as FoodMutationResult.Applied
+
+        assertEquals(FoodStatus.DISCARDED, repository.findById(original.id)?.status)
+        assertNull(result.event.discardReason)
     }
 
     private fun foodItem() = FoodItem(

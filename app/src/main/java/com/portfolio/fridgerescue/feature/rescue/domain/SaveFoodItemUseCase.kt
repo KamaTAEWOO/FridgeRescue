@@ -38,6 +38,7 @@ sealed interface SaveFoodItemResult {
 
 class SaveFoodItemUseCase(
     private val repository: FoodRepository,
+    private val operationIdFactory: () -> String = { UUID.randomUUID().toString() },
     private val idFactory: () -> FoodItemId = { FoodItemId(UUID.randomUUID().toString()) },
 ) {
     suspend operator fun invoke(draft: FoodItemDraft): SaveFoodItemResult {
@@ -83,7 +84,7 @@ class SaveFoodItemUseCase(
             status = status,
         )
 
-        repository.upsert(foodItem)
+        repository.save(foodItem, operationIdFactory())
         return SaveFoodItemResult.Saved(
             foodItem = foodItem,
             isNew = existingItem == null,

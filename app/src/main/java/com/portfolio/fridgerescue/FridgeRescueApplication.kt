@@ -21,6 +21,10 @@ private class DefaultAppContainer(
     }
 
     override val foodRepository: FoodRepository by lazy {
-        RoomFoodRepository(database.foodItemDao())
+        RoomFoodRepository(
+            database = database,
+            foodItemDao = database.foodItemDao(),
+            foodEventDao = database.foodEventDao(),
+        )
     }
 }

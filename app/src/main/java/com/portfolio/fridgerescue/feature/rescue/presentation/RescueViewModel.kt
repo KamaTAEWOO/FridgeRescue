@@ -7,8 +7,10 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.portfolio.fridgerescue.FridgeRescueApplication
 import com.portfolio.fridgerescue.core.data.repository.FoodRepository
-import com.portfolio.fridgerescue.core.model.FoodItem
+import com.portfolio.fridgerescue.core.model.FoodActionRequest
+import com.portfolio.fridgerescue.core.model.FoodActionType
 import com.portfolio.fridgerescue.core.model.FoodItemId
+import com.portfolio.fridgerescue.core.model.FoodMutationResult
 import com.portfolio.fridgerescue.core.model.FoodStatus
 import com.portfolio.fridgerescue.feature.rescue.domain.FoodItemDraft
 import com.portfolio.fridgerescue.feature.rescue.domain.GetRescueQueueUseCase
@@ -17,16 +19,18 @@ import com.portfolio.fridgerescue.feature.rescue.domain.SaveFoodItemResult
 import com.portfolio.fridgerescue.feature.rescue.domain.SaveFoodItemUseCase
 import java.time.Clock
 import java.time.LocalDate
+import java.util.UUID
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 
 class RescueViewModel(
     private val repository: FoodRepository,
@@ -34,14 +38,38 @@ class RescueViewModel(
     private val getRescueQueue: GetRescueQueueUseCase = GetRescueQueueUseCase(),
     private val saveFoodItem: SaveFoodItemUseCase = SaveFoodItemUseCase(repository),
 ) : ViewModel() {
-    private val actionMutex = Mutex()
-    private val undoItems = mutableMapOf<FoodItemId, FoodItem>()
     private val eventChannel = Channel<RescueEvent>(Channel.BUFFERED)
     private val editorState = MutableStateFlow<FoodEditorUiState?>(null)
+    private val detailSelection = MutableStateFlow<DetailSelection?>(null)
 
     val events = eventChannel.receiveAsFlow()
 
-    val uiState = combine(repository.foodItems, editorState) { foodItems, editor ->
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val detailState = detailSelection.flatMapLatest { selection ->
+        if (selection == null) {
+            flowOf(null)
+        } else {
+            combine(repository.foodItems, repository.observeEvents(selection.foodItemId)) {
+                    foodItems,
+                    events,
+                ->
+                foodItems.firstOrNull { it.id == selection.foodItemId }?.let { foodItem ->
+                    FoodDetailUiState(
+                        foodItem = foodItem,
+                        events = events,
+                        discardReason = selection.discardReason,
+                        actionInProgress = selection.actionInProgress,
+                    )
+                }
+            }
+        }
+    }
+
+    val uiState = combine(repository.foodItems, editorState, detailState) {
+            foodItems,
+            editor,
+            detail,
+        ->
         val queueItems = getRescueQueue(foodItems, LocalDate.now(clock))
         RescueUiState.Content(
             items = queueItems,
@@ -55,6 +83,7 @@ class RescueViewModel(
                     it.foodItem.status == FoodStatus.NEEDS_REVIEW
             },
             editor = editor,
+            detail = detail,
         )
     }
         .stateIn(
@@ -66,7 +95,13 @@ class RescueViewModel(
     fun onAction(action: RescueAction) {
         when (action) {
             is RescueAction.MarkConsumed -> markConsumed(action.foodItemId)
-            is RescueAction.UndoConsumed -> undoConsumed(action.foodItemId)
+            is RescueAction.OpenFoodActions -> detailSelection.value =
+                DetailSelection(action.foodItemId)
+            RescueAction.DismissFoodActions -> detailSelection.value = null
+            is RescueAction.RecordFoodAction -> recordAction(action.foodItemId, action.type)
+            is RescueAction.ChangeDiscardReason -> detailSelection.value = detailSelection.value
+                ?.copy(discardReason = action.value)
+            is RescueAction.UndoMutation -> undoMutation(action.eventId)
             RescueAction.StartAddFood -> editorState.value = FoodEditorUiState()
             is RescueAction.StartEditFood -> startEdit(action.foodItemId)
             RescueAction.DismissEditor -> editorState.value = null
@@ -144,30 +179,45 @@ class RescueViewModel(
     }
 
     private fun markConsumed(foodItemId: FoodItemId) {
-        viewModelScope.launch {
-            actionMutex.withLock {
-                val currentItem = repository.findById(foodItemId)
-                    ?.takeUnless(FoodItem::isFinalized)
-                    ?: return@withLock
+        recordAction(foodItemId, FoodActionType.CONSUME)
+    }
 
-                undoItems[foodItemId] = currentItem
-                repository.upsert(currentItem.copy(status = FoodStatus.CONSUMED))
+    private fun recordAction(foodItemId: FoodItemId, type: FoodActionType) {
+        viewModelScope.launch {
+            val currentItem = repository.findById(foodItemId) ?: return@launch
+            detailSelection.value = detailSelection.value
+                ?.takeIf { it.foodItemId == foodItemId }
+                ?.copy(actionInProgress = true)
+            val result = repository.performAction(
+                FoodActionRequest(
+                    foodItemId = foodItemId,
+                    type = type,
+                    operationId = UUID.randomUUID().toString(),
+                    discardReason = if (type == FoodActionType.DISCARD) {
+                        detailSelection.value?.discardReason
+                    } else {
+                        null
+                    },
+                ),
+            )
+            if (result is FoodMutationResult.Applied) {
+                detailSelection.value = null
                 eventChannel.send(
-                    RescueEvent.ShowConsumedUndo(
-                        foodItemId = foodItemId,
+                    RescueEvent.ShowMutationUndo(
+                        eventId = result.event.id,
                         foodName = currentItem.name,
+                        actionType = type,
                     ),
                 )
+            } else {
+                detailSelection.value = detailSelection.value?.copy(actionInProgress = false)
             }
         }
     }
 
-    private fun undoConsumed(foodItemId: FoodItemId) {
+    private fun undoMutation(eventId: String) {
         viewModelScope.launch {
-            actionMutex.withLock {
-                val previousItem = undoItems.remove(foodItemId) ?: return@withLock
-                repository.upsert(previousItem)
-            }
+            repository.undo(eventId, UUID.randomUUID().toString())
         }
     }
 
@@ -179,4 +229,10 @@ class RescueViewModel(
             }
         }
     }
+
+    private data class DetailSelection(
+        val foodItemId: FoodItemId,
+        val discardReason: String = "",
+        val actionInProgress: Boolean = false,
+    )
 }

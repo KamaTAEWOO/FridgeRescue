@@ -1,5 +1,8 @@
 package com.portfolio.fridgerescue.feature.rescue.presentation
 
+import com.portfolio.fridgerescue.core.model.FoodActionType
+import com.portfolio.fridgerescue.core.model.FoodEvent
+import com.portfolio.fridgerescue.core.model.FoodItem
 import com.portfolio.fridgerescue.core.model.FoodItemId
 import com.portfolio.fridgerescue.core.model.StorageLocation
 import com.portfolio.fridgerescue.feature.rescue.domain.FoodItemDraftError
@@ -13,8 +16,16 @@ sealed interface RescueUiState {
         val urgentCount: Int,
         val needsReviewCount: Int,
         val editor: FoodEditorUiState? = null,
+        val detail: FoodDetailUiState? = null,
     ) : RescueUiState
 }
+
+data class FoodDetailUiState(
+    val foodItem: FoodItem,
+    val events: List<FoodEvent>,
+    val discardReason: String = "",
+    val actionInProgress: Boolean = false,
+)
 
 data class FoodEditorUiState(
     val foodItemId: FoodItemId? = null,
@@ -33,7 +44,14 @@ data class FoodEditorUiState(
 
 sealed interface RescueAction {
     data class MarkConsumed(val foodItemId: FoodItemId) : RescueAction
-    data class UndoConsumed(val foodItemId: FoodItemId) : RescueAction
+    data class OpenFoodActions(val foodItemId: FoodItemId) : RescueAction
+    data object DismissFoodActions : RescueAction
+    data class RecordFoodAction(
+        val foodItemId: FoodItemId,
+        val type: FoodActionType,
+    ) : RescueAction
+    data class ChangeDiscardReason(val value: String) : RescueAction
+    data class UndoMutation(val eventId: String) : RescueAction
     data object StartAddFood : RescueAction
     data class StartEditFood(val foodItemId: FoodItemId) : RescueAction
     data object DismissEditor : RescueAction
@@ -47,9 +65,10 @@ sealed interface RescueAction {
 }
 
 sealed interface RescueEvent {
-    data class ShowConsumedUndo(
-        val foodItemId: FoodItemId,
+    data class ShowMutationUndo(
+        val eventId: String,
         val foodName: String,
+        val actionType: FoodActionType,
     ) : RescueEvent
 
     data class ShowFoodSaved(
