@@ -53,7 +53,20 @@ class ExpiryNotificationWorker(
             return Result.success()
         }
 
-        val foods = application.container.foodRepository.foodItems.first()
+        val repository = application.container.foodRepository
+        val initialFoods = repository.foodItems.first()
+        val staleFoods = GetStaleFoodCandidatesUseCase()(
+            foods = initialFoods,
+            events = repository.events.first(),
+            now = Instant.now(),
+        )
+        if (staleFoods.isNotEmpty()) {
+            repository.saveAll(
+                foodItems = staleFoods.map { it.copy(status = com.portfolio.fridgerescue.core.model.FoodStatus.NEEDS_REVIEW) },
+                operationId = "stale-review:${LocalDate.now()}",
+            )
+        }
+        val foods = if (staleFoods.isEmpty()) initialFoods else repository.foodItems.first()
         val candidates = GetNotificationCandidatesUseCase()(foods, LocalDate.now())
         if (candidates.isEmpty()) {
             notificationManager.cancel(NOTIFICATION_ID)

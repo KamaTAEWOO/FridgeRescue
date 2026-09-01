@@ -57,14 +57,15 @@
 | Compose UI | `TC-OCR-005` | `RescueScreenTest` | `AUTOMATED` |
 | JVM 단위 | `TC-NOTIFY-001`, `TC-ACTION-006`, `TC-DATE-003` | `GetNotificationCandidatesUseCaseTest` | `AUTOMATED` |
 | JVM 단위 | `TC-NOTIFY-006`, `TC-NOTIFY-010` 액션 매핑 | `QuietHoursPolicyTest`, `NotificationFoodActionReceiverTest` | `AUTOMATED` |
+| JVM 단위 | `TC-ACTION-007` | `GetStaleFoodCandidatesUseCaseTest` | `AUTOMATED` |
 | Compose UI | `TC-NOTIFY-003` | `RescueScreenTest` | `AUTOMATED` |
 | JVM 단위 | `TC-REPORT-001~003` | `GetReportMetricsUseCaseTest` | `AUTOMATED` |
 | Compose UI | `TC-REPORT-004`, `TC-SETTINGS-001` | `RescueScreenTest` | `AUTOMATED` |
 | JVM 단위 | `TC-PRIVACY-003` | `SharedIntakeCacheCleanerTest` | `AUTOMATED` |
 
-- 자동 테스트: 68개
+- 자동 테스트: 70개
 - 최근 검증 환경: `FridgeRescue_API_36`, Android API 36
-- 최근 결과: JVM 33개 통과, Room·Intent·Compose 계측 35개 통과
+- 최근 결과: JVM 35개 통과, Room·Intent·Compose 계측 35개 통과
 
 ## 3. 자동화 계층
 
@@ -128,7 +129,7 @@
 | `TC-ACTION-004` | 불변조건 3, `C-01` | 같은 `operationId` | 먹음 요청을 반복 | 이벤트와 집계는 한 번만 반영 | P0 |
 | `TC-ACTION-005` | `C-05` | 같은 버전의 활성 식재료 | 먹음·버림 요청이 경쟁 | 한 요청만 성공하고 최종 이벤트 하나만 존재 | P0 |
 | `TC-ACTION-006` | `FR-ACTION-04` | 소비 또는 폐기 완료 항목 | 다음 알림 대상 계산 | 대상에서 제외 | P0 |
-| `TC-ACTION-007` | `FR-ACTION-05`, `C-07` | 장기간 응답 없는 항목 | 점검 작업 실행 | 자동 소비하지 않고 확인 필요로 이동 | P0 |
+| `TC-ACTION-007` | `FR-ACTION-05`, `C-07` | 마지막 기록 후 7일 넘게 응답 없는 항목 | 점검 작업 실행 | 자동 소비하지 않고 확인 필요로 이동 | P0 |
 | `TC-ACTION-008` | `C-03` | 날짜가 지난 활성 식재료 | 먹음 처리 | 차단하지 않고 사용자의 행동만 기록 | P0 |
 | `TC-ACTION-009` | `FR-ACTION-03`, `C-04` | 활성 식재료 | 폐기 사유를 비워 두고 버림 처리 | 입력 오류 없이 완료되고 사유는 `null`로 저장 | P0 |
 
