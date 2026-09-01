@@ -49,10 +49,14 @@
 | Intent·Room | `TC-INTAKE-001~005`, `007~009` | `SharedContentReceiverTest` | `AUTOMATED` |
 | Room 마이그레이션 | `TC-DATA-013` | `DatabaseMigrationTest` | `AUTOMATED` |
 | Compose UI | `TC-INTAKE-001` 공유 초안 표시 | `RescueScreenTest` | `AUTOMATED` |
+| JVM 단위 | `TC-INTAKE-011`, `TC-FILTER-001`, `TC-OCR-002`, `TC-INTAKE-014` | `PurchaseLineParserTest` | `AUTOMATED` |
+| JVM 단위 | `TC-UI-002` 선택 후보 일괄 저장 | `SaveIntakeCandidatesUseCaseTest` | `AUTOMATED` |
+| Room 마이그레이션·트랜잭션 | `TC-DATA-014`, `015` | `DatabaseMigrationTest`, `FoodItemDaoTest` | `AUTOMATED` |
+| Compose UI | `TC-UI-001`, `AT-001` | `RescueScreenTest` | `AUTOMATED` |
 
-- 자동 테스트: 40개
+- 자동 테스트: 50개
 - 최근 검증 환경: `FridgeRescue_API_36`, Android API 36
-- 최근 결과: JVM 17개 통과, Room·Intent·Compose 계측 23개 통과
+- 최근 결과: JVM 23개 통과, Room·Intent·Compose 계측 27개 통과
 
 ## 3. 자동화 계층
 

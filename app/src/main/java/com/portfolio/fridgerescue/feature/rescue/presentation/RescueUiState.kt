@@ -5,6 +5,7 @@ import com.portfolio.fridgerescue.core.model.FoodEvent
 import com.portfolio.fridgerescue.core.model.FoodItem
 import com.portfolio.fridgerescue.core.model.FoodItemId
 import com.portfolio.fridgerescue.core.model.IntakeDraft
+import com.portfolio.fridgerescue.core.model.IntakeCandidate
 import com.portfolio.fridgerescue.core.model.StorageLocation
 import com.portfolio.fridgerescue.feature.rescue.domain.FoodItemDraftError
 import com.portfolio.fridgerescue.feature.rescue.domain.RescueQueueItem
@@ -18,8 +19,16 @@ sealed interface RescueUiState {
         val needsReviewCount: Int,
         val editor: FoodEditorUiState? = null,
         val detail: FoodDetailUiState? = null,
-        val intakeDraft: IntakeDraft? = null,
+        val intakeReview: IntakeReviewUiState? = null,
     ) : RescueUiState
+}
+
+data class IntakeReviewUiState(
+    val draft: IntakeDraft,
+    val candidates: List<IntakeCandidate>,
+    val isSaving: Boolean = false,
+) {
+    val selectedCount: Int get() = candidates.count { it.isSelected }
 }
 
 data class FoodDetailUiState(
@@ -55,6 +64,8 @@ sealed interface RescueAction {
     data class ChangeDiscardReason(val value: String) : RescueAction
     data class UndoMutation(val eventId: String) : RescueAction
     data class DismissIntakeDraft(val draftId: String) : RescueAction
+    data class ToggleIntakeCandidate(val candidateId: String, val selected: Boolean) : RescueAction
+    data class SaveIntakeCandidates(val draftId: String) : RescueAction
     data object StartAddFood : RescueAction
     data class StartEditFood(val foodItemId: FoodItemId) : RescueAction
     data object DismissEditor : RescueAction
@@ -78,4 +89,6 @@ sealed interface RescueEvent {
         val foodName: String,
         val isNew: Boolean,
     ) : RescueEvent
+
+    data class ShowBatchSaved(val count: Int) : RescueEvent
 }

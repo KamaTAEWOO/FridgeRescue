@@ -49,6 +49,27 @@ class InMemoryFoodRepository(
             )
         }
 
+    override suspend fun saveAll(foodItems: List<FoodItem>, operationId: String): Int =
+        mutex.withLock {
+            var savedCount = 0
+            foodItems.forEach { foodItem ->
+                val itemOperationId = "$operationId:${foodItem.id.value}"
+                if (duplicate(itemOperationId) == null) {
+                    val previous = findById(foodItem.id)
+                    setItem(foodItem)
+                    addEvent(
+                        operationId = itemOperationId,
+                        foodItemId = foodItem.id,
+                        type = if (previous == null) FoodEventType.CREATED else FoodEventType.UPDATED,
+                        previousStatus = previous?.status,
+                        newStatus = foodItem.status,
+                    )
+                    savedCount++
+                }
+            }
+            savedCount
+        }
+
     override suspend fun performAction(request: FoodActionRequest): FoodMutationResult =
         mutex.withLock {
             duplicate(request.operationId)?.let { return@withLock it }

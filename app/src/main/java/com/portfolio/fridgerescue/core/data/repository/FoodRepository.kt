@@ -16,6 +16,8 @@ interface FoodRepository {
 
     suspend fun save(foodItem: FoodItem, operationId: String): FoodMutationResult
 
+    suspend fun saveAll(foodItems: List<FoodItem>, operationId: String): Int
+
     suspend fun performAction(request: FoodActionRequest): FoodMutationResult
 
     suspend fun undo(eventId: String, operationId: String): FoodMutationResult

@@ -23,6 +23,7 @@ class SharedContentReceiver(
     private val repository: IntakeDraftRepository,
     private val clock: Clock = Clock.systemUTC(),
     private val idFactory: () -> String = { UUID.randomUUID().toString() },
+    private val parser: PurchaseLineParser = PurchaseLineParser(),
 ) {
     suspend fun receive(intent: Intent): String? = withContext(Dispatchers.IO) {
         if (intent.action != Intent.ACTION_SEND && intent.action != Intent.ACTION_SEND_MULTIPLE) {
@@ -58,6 +59,12 @@ class SharedContentReceiver(
             else -> receiveFile(intent, draftId, mimeType, contentType, now)
         }
         repository.save(draft)
+        if (draft.status == IntakeDraftStatus.READY && draft.contentType == IntakeContentType.TEXT) {
+            repository.replaceCandidates(
+                draftId = draftId,
+                candidates = parser.parse(draftId, draft.textContent.orEmpty()),
+            )
+        }
         draftId
     }
 

@@ -66,6 +66,15 @@ class DatabaseMigrationTest {
         }
     }
 
+    @Test
+    fun TC_DATA_014_migration_3_to_4_adds_persistent_candidates() {
+        openHelper(version = 3).use { it.writableDatabase }
+
+        openHelper(version = 4).use { helper ->
+            assertEquals(0, helper.writableDatabase.count("SELECT * FROM intake_candidates"))
+        }
+    }
+
     private fun openHelper(version: Int): SupportSQLiteOpenHelper =
         FrameworkSQLiteOpenHelperFactory().create(
             SupportSQLiteOpenHelper.Configuration.builder(context)
@@ -83,6 +92,7 @@ class DatabaseMigrationTest {
                         ) {
                             if (oldVersion < 2) FridgeRescueDatabase.MIGRATION_1_2.migrate(db)
                             if (oldVersion < 3) FridgeRescueDatabase.MIGRATION_2_3.migrate(db)
+                            if (oldVersion < 4) FridgeRescueDatabase.MIGRATION_3_4.migrate(db)
                         }
                     },
                 )

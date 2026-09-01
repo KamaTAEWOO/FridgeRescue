@@ -50,6 +50,27 @@ class RoomFoodRepository(
             )
         }
 
+    override suspend fun saveAll(foodItems: List<FoodItem>, operationId: String): Int =
+        database.withTransaction {
+            var savedCount = 0
+            foodItems.forEach { foodItem ->
+                val itemOperationId = "$operationId:${foodItem.id.value}"
+                if (foodEventDao.findByOperationId(itemOperationId) == null) {
+                    val existing = foodItemDao.findById(foodItem.id.value)?.toDomain()
+                    foodItemDao.upsert(foodItem.toEntity(clock.millis()))
+                    insertEvent(
+                        operationId = itemOperationId,
+                        foodItemId = foodItem.id,
+                        type = if (existing == null) FoodEventType.CREATED else FoodEventType.UPDATED,
+                        previousStatus = existing?.status,
+                        newStatus = foodItem.status,
+                    )
+                    savedCount++
+                }
+            }
+            savedCount
+        }
+
     override suspend fun performAction(request: FoodActionRequest): FoodMutationResult =
         database.withTransaction {
             duplicate(request.operationId)?.let { return@withTransaction it }

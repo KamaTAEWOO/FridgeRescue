@@ -137,6 +137,21 @@ class FoodItemDaoTest {
         assertNull(result.event.discardReason)
     }
 
+    @Test
+    fun TC_DATA_015_batch_save_is_idempotent_and_records_each_created_event() = runBlocking {
+        val firstItem = foodItem()
+        val secondItem = firstItem.copy(id = FoodItemId("milk-id"), name = "우유")
+
+        val firstCount = repository.saveAll(listOf(firstItem, secondItem), "batch-operation")
+        val duplicateCount = repository.saveAll(listOf(firstItem, secondItem), "batch-operation")
+
+        assertEquals(2, firstCount)
+        assertEquals(0, duplicateCount)
+        assertEquals(2, repository.foodItems.first().size)
+        assertEquals(FoodEventType.CREATED, repository.observeEvents(firstItem.id).first().single().type)
+        assertEquals(FoodEventType.CREATED, repository.observeEvents(secondItem.id).first().single().type)
+    }
+
     private fun foodItem() = FoodItem(
         id = FoodItemId("tofu-id"),
         name = "두부",

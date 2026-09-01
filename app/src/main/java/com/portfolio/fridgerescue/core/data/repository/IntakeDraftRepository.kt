@@ -1,10 +1,15 @@
 package com.portfolio.fridgerescue.core.data.repository
 
+import com.portfolio.fridgerescue.core.data.database.IntakeCandidateDao
+import com.portfolio.fridgerescue.core.data.database.IntakeCandidateEntity
 import com.portfolio.fridgerescue.core.data.database.IntakeDraftDao
 import com.portfolio.fridgerescue.core.data.database.IntakeDraftEntity
+import com.portfolio.fridgerescue.core.model.IntakeCandidate
+import com.portfolio.fridgerescue.core.model.IntakeCandidateGroup
 import com.portfolio.fridgerescue.core.model.IntakeContentType
 import com.portfolio.fridgerescue.core.model.IntakeDraft
 import com.portfolio.fridgerescue.core.model.IntakeDraftStatus
+import com.portfolio.fridgerescue.core.model.StorageLocation
 import java.time.Clock
 import java.time.Instant
 import kotlinx.coroutines.flow.Flow
@@ -16,10 +21,15 @@ interface IntakeDraftRepository {
     val latestActiveDraft: Flow<IntakeDraft?>
     suspend fun save(draft: IntakeDraft)
     suspend fun archive(id: String)
+    fun observeCandidates(draftId: String): Flow<List<IntakeCandidate>>
+    suspend fun candidates(draftId: String): List<IntakeCandidate>
+    suspend fun replaceCandidates(draftId: String, candidates: List<IntakeCandidate>)
+    suspend fun updateCandidateSelected(id: String, selected: Boolean)
 }
 
 class RoomIntakeDraftRepository(
     private val dao: IntakeDraftDao,
+    private val candidateDao: IntakeCandidateDao,
     private val clock: Clock = Clock.systemUTC(),
 ) : IntakeDraftRepository {
     private val mutex = Mutex()
@@ -42,6 +52,20 @@ class RoomIntakeDraftRepository(
         )
         dao.archive(id, updatedAt)
     }
+
+    override fun observeCandidates(draftId: String): Flow<List<IntakeCandidate>> =
+        candidateDao.observeForDraft(draftId).map { values -> values.map { it.toDomain() } }
+
+    override suspend fun candidates(draftId: String): List<IntakeCandidate> =
+        candidateDao.findForDraft(draftId).map { it.toDomain() }
+
+    override suspend fun replaceCandidates(
+        draftId: String,
+        candidates: List<IntakeCandidate>,
+    ) = candidateDao.replaceForDraft(draftId, candidates.map { it.toEntity() })
+
+    override suspend fun updateCandidateSelected(id: String, selected: Boolean) =
+        candidateDao.updateSelected(id, selected)
 }
 
 private fun IntakeDraftEntity.toDomain() = IntakeDraft(
@@ -66,4 +90,34 @@ private fun IntakeDraft.toEntity() = IntakeDraftEntity(
     errorCode = errorCode,
     createdAtEpochMillis = createdAt.toEpochMilli(),
     updatedAtEpochMillis = updatedAt.toEpochMilli(),
+)
+
+private fun IntakeCandidateEntity.toDomain() = IntakeCandidate(
+    id = id,
+    draftId = draftId,
+    originalName = originalName,
+    normalizedName = normalizedName,
+    quantity = quantity,
+    group = runCatching { IntakeCandidateGroup.valueOf(candidateGroup) }
+        .getOrDefault(IntakeCandidateGroup.REVIEW),
+    isSelected = isSelected,
+    reason = reason,
+    position = position,
+    storageLocation = runCatching { StorageLocation.valueOf(storageLocation) }
+        .getOrDefault(StorageLocation.REFRIGERATED),
+    estimatedShelfLifeDays = estimatedShelfLifeDays,
+)
+
+private fun IntakeCandidate.toEntity() = IntakeCandidateEntity(
+    id = id,
+    draftId = draftId,
+    originalName = originalName,
+    normalizedName = normalizedName,
+    quantity = quantity,
+    candidateGroup = group.name,
+    isSelected = isSelected,
+    reason = reason,
+    position = position,
+    storageLocation = storageLocation.name,
+    estimatedShelfLifeDays = estimatedShelfLifeDays,
 )

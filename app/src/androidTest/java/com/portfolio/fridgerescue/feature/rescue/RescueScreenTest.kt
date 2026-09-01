@@ -11,12 +11,15 @@ import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTextReplacement
 import com.portfolio.fridgerescue.core.testing.InMemoryFoodRepository
+import com.portfolio.fridgerescue.core.testing.InMemoryIntakeDraftRepository
 import com.portfolio.fridgerescue.core.model.FoodDate
 import com.portfolio.fridgerescue.core.model.FoodDateSource
 import com.portfolio.fridgerescue.core.model.FoodItem
 import com.portfolio.fridgerescue.core.model.FoodItemId
 import com.portfolio.fridgerescue.core.model.StorageLocation
 import com.portfolio.fridgerescue.core.model.IntakeContentType
+import com.portfolio.fridgerescue.core.model.IntakeCandidate
+import com.portfolio.fridgerescue.core.model.IntakeCandidateGroup
 import com.portfolio.fridgerescue.core.model.IntakeDraft
 import com.portfolio.fridgerescue.core.model.IntakeDraftStatus
 import com.portfolio.fridgerescue.feature.rescue.domain.GetRescueQueueUseCase
@@ -26,6 +29,7 @@ import com.portfolio.fridgerescue.feature.rescue.presentation.FoodEditorTestTags
 import com.portfolio.fridgerescue.feature.rescue.presentation.RescueRoute
 import com.portfolio.fridgerescue.feature.rescue.presentation.RescueScreen
 import com.portfolio.fridgerescue.feature.rescue.presentation.RescueUiState
+import com.portfolio.fridgerescue.feature.rescue.presentation.IntakeReviewUiState
 import com.portfolio.fridgerescue.feature.rescue.presentation.RescueViewModel
 import com.portfolio.fridgerescue.ui.theme.FridgeRescueTheme
 import java.time.Clock
@@ -33,6 +37,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.flow.first
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -137,10 +142,74 @@ class RescueScreenTest {
             updatedAt = Instant.parse("2026-09-01T00:00:00Z"),
         )
 
-        setScreen(contentState().copy(intakeDraft = draft))
+        setScreen(contentState().copy(intakeReview = IntakeReviewUiState(draft, emptyList())))
 
         composeRule.onNodeWithText("구매내역을 받았어요").assertIsDisplayed()
         composeRule.onNodeWithText("두부 2개\n시금치 1봉").assertIsDisplayed()
+    }
+
+    @Test
+    fun TC_UI_001_candidate_groups_and_default_selection_are_visible() {
+        val draft = IntakeDraft(
+            id = "grouped",
+            contentType = IntakeContentType.TEXT,
+            mimeType = "text/plain",
+            textContent = "두부\n새 품목\n물티슈",
+            cachedFilePath = null,
+            status = IntakeDraftStatus.READY,
+            errorCode = null,
+            createdAt = Instant.parse("2026-09-01T00:00:00Z"),
+            updatedAt = Instant.parse("2026-09-01T00:00:00Z"),
+        )
+        val candidates = listOf(
+            intakeCandidate("두부", IntakeCandidateGroup.MANAGE, true, 0),
+            intakeCandidate("새 품목", IntakeCandidateGroup.REVIEW, false, 1),
+            intakeCandidate("물티슈", IntakeCandidateGroup.EXCLUDED, false, 2),
+        )
+
+        setScreen(contentState().copy(intakeReview = IntakeReviewUiState(draft, candidates)))
+
+        composeRule.onNodeWithText("관리 후보 1개").assertIsDisplayed()
+        composeRule.onNodeWithText("확인 필요 1개").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("기본 제외 1개").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("선택한 1개 담기").performScrollTo().assertIsDisplayed()
+    }
+
+    @Test
+    fun AT_001_selected_shared_items_are_saved_to_rescue_queue() {
+        val draft = IntakeDraft(
+            id = "grouped",
+            contentType = IntakeContentType.TEXT,
+            mimeType = "text/plain",
+            textContent = "두부\n시금치",
+            cachedFilePath = null,
+            status = IntakeDraftStatus.READY,
+            errorCode = null,
+            createdAt = Instant.parse("2026-09-01T00:00:00Z"),
+            updatedAt = Instant.parse("2026-09-01T00:00:00Z"),
+        )
+        val foodRepository = InMemoryFoodRepository()
+        val intakeRepository = InMemoryIntakeDraftRepository(
+            initialDraft = draft,
+            initialCandidates = listOf(
+                intakeCandidate("두부", IntakeCandidateGroup.MANAGE, true, 0),
+                intakeCandidate("시금치", IntakeCandidateGroup.MANAGE, true, 1),
+            ),
+        )
+        val viewModel = RescueViewModel(
+            repository = foodRepository,
+            intakeDraftRepository = intakeRepository,
+            clock = fixedClock(),
+        )
+        setRoute(viewModel)
+
+        composeRule.onNodeWithText("선택한 2개 담기").performScrollTo().performClick()
+
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            runBlocking { foodRepository.foodItems.first().size == 2 }
+        }
+        composeRule.onNodeWithText("두부").assertIsDisplayed()
+        composeRule.onNodeWithText("시금치").assertIsDisplayed()
     }
 
     @Test
@@ -241,5 +310,24 @@ class RescueScreenTest {
         name = name,
         storageLocation = StorageLocation.REFRIGERATED,
         dates = listOf(date),
+    )
+
+    private fun intakeCandidate(
+        name: String,
+        group: IntakeCandidateGroup,
+        selected: Boolean,
+        position: Int,
+    ) = IntakeCandidate(
+        id = "candidate-$position",
+        draftId = "grouped",
+        originalName = name,
+        normalizedName = name,
+        quantity = 1,
+        group = group,
+        isSelected = selected,
+        reason = null,
+        position = position,
+        storageLocation = StorageLocation.REFRIGERATED,
+        estimatedShelfLifeDays = null,
     )
 }

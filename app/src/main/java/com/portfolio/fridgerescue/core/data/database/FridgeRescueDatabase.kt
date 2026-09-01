@@ -8,14 +8,20 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
-    entities = [FoodItemEntity::class, FoodEventEntity::class, IntakeDraftEntity::class],
-    version = 3,
+    entities = [
+        FoodItemEntity::class,
+        FoodEventEntity::class,
+        IntakeDraftEntity::class,
+        IntakeCandidateEntity::class,
+    ],
+    version = 4,
     exportSchema = true,
 )
 abstract class FridgeRescueDatabase : RoomDatabase() {
     abstract fun foodItemDao(): FoodItemDao
     abstract fun foodEventDao(): FoodEventDao
     abstract fun intakeDraftDao(): IntakeDraftDao
+    abstract fun intakeCandidateDao(): IntakeCandidateDao
 
     companion object {
         private const val DATABASE_NAME = "fridge-rescue.db"
@@ -24,7 +30,7 @@ abstract class FridgeRescueDatabase : RoomDatabase() {
             context = context.applicationContext,
             klass = FridgeRescueDatabase::class.java,
             name = DATABASE_NAME,
-        ).addMigrations(MIGRATION_1_2, MIGRATION_2_3).build()
+        ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4).build()
 
         val MIGRATION_1_2 = object : Migration(1, 2) {
             override fun migrate(db: SupportSQLiteDatabase) {
@@ -80,6 +86,33 @@ abstract class FridgeRescueDatabase : RoomDatabase() {
                 db.execSQL(
                     "CREATE INDEX IF NOT EXISTS `index_intake_drafts_status_updated_at_epoch_millis` " +
                         "ON `intake_drafts` (`status`, `updated_at_epoch_millis`)",
+                )
+            }
+        }
+
+        val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `intake_candidates` (
+                        `id` TEXT NOT NULL,
+                        `draft_id` TEXT NOT NULL,
+                        `original_name` TEXT NOT NULL,
+                        `normalized_name` TEXT NOT NULL,
+                        `quantity` INTEGER,
+                        `candidate_group` TEXT NOT NULL,
+                        `is_selected` INTEGER NOT NULL,
+                        `reason` TEXT,
+                        `position` INTEGER NOT NULL,
+                        `storage_location` TEXT NOT NULL,
+                        `estimated_shelf_life_days` INTEGER,
+                        PRIMARY KEY(`id`)
+                    )
+                    """.trimIndent(),
+                )
+                db.execSQL(
+                    "CREATE INDEX IF NOT EXISTS `index_intake_candidates_draft_id_position` " +
+                        "ON `intake_candidates` (`draft_id`, `position`)",
                 )
             }
         }

@@ -25,6 +25,7 @@ fun RescueRoute(
     val undoLabel = stringResource(R.string.rescue_undo)
     val addedMessage = stringResource(R.string.food_added_message)
     val updatedMessage = stringResource(R.string.food_updated_message)
+    val batchSavedMessage = stringResource(R.string.intake_batch_saved)
 
     LaunchedEffect(
         viewModel,
@@ -35,6 +36,7 @@ fun RescueRoute(
         undoLabel,
         addedMessage,
         updatedMessage,
+        batchSavedMessage,
     ) {
         viewModel.events.collect { event ->
             when (event) {
@@ -62,6 +64,9 @@ fun RescueRoute(
                             updatedMessage.format(event.foodName)
                         },
                     )
+                }
+                is RescueEvent.ShowBatchSaved -> {
+                    snackbarHostState.showSnackbar(batchSavedMessage.format(event.count))
                 }
             }
         }

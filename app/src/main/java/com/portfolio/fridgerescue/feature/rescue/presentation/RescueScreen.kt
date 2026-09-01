@@ -85,11 +85,17 @@ fun RescueScreen(
     if (detail != null) {
         FoodDetailSheet(state = detail, onAction = onAction)
     }
-    val intakeDraft = (uiState as? RescueUiState.Content)?.intakeDraft
-    if (intakeDraft != null) {
+    val intakeReview = (uiState as? RescueUiState.Content)?.intakeReview
+    if (intakeReview != null) {
         IntakeDraftSheet(
-            draft = intakeDraft,
-            onDismiss = { onAction(RescueAction.DismissIntakeDraft(intakeDraft.id)) },
+            state = intakeReview,
+            onDismiss = {
+                onAction(RescueAction.DismissIntakeDraft(intakeReview.draft.id))
+            },
+            onCandidateSelected = { id, selected ->
+                onAction(RescueAction.ToggleIntakeCandidate(id, selected))
+            },
+            onSave = { onAction(RescueAction.SaveIntakeCandidates(intakeReview.draft.id)) },
         )
     }
 }

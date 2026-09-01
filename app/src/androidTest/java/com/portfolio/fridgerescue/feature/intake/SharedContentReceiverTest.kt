@@ -36,7 +36,11 @@ class SharedContentReceiverTest {
     @Before
     fun setUp() {
         database = Room.inMemoryDatabaseBuilder(context, FridgeRescueDatabase::class.java).build()
-        repository = RoomIntakeDraftRepository(database.intakeDraftDao(), fixedClock())
+        repository = RoomIntakeDraftRepository(
+            dao = database.intakeDraftDao(),
+            candidateDao = database.intakeCandidateDao(),
+            clock = fixedClock(),
+        )
     }
 
     @After
@@ -57,6 +61,9 @@ class SharedContentReceiverTest {
         assertEquals(IntakeDraftStatus.READY, draft.status)
         assertEquals(IntakeContentType.TEXT, draft.contentType)
         assertEquals("두부 2개\n시금치 1봉", draft.textContent)
+        val candidates = repository.candidates(draft.id)
+        assertEquals(listOf("두부", "시금치"), candidates.map { it.normalizedName })
+        assertTrue(candidates.all { it.isSelected })
     }
 
     @Test

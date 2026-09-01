@@ -87,4 +87,12 @@
     <string name="intake_error_large">파일이 너무 커요. 필요한 페이지만 공유해주세요.</string>
     <string name="intake_error_signature">파일 형식이 표시된 형식과 달라요. 다시 공유해주세요.</string>
     <string name="intake_error_empty_text">공유된 내용이 비어 있어요. 구매내역을 다시 선택해주세요.</string>
+    <string name="intake_group_manage">관리 후보</string>
+    <string name="intake_group_review">확인 필요</string>
+    <string name="intake_group_excluded">기본 제외</string>
+    <string name="intake_group_count">%1$s %2$d개</string>
+    <string name="intake_save_selected">선택한 %1$d개 담기</string>
+    <string name="intake_saving">냉장고에 담는 중…</string>
+    <string name="intake_no_candidates">자동으로 찾은 품목이 없어요. 직접 추가로 이어갈 수 있어요.</string>
+    <string name="intake_batch_saved">선택한 식재료 %1$d개를 냉장고에 담았어요</string>
 </resources>

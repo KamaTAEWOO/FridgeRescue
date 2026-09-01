@@ -18,6 +18,7 @@ import com.portfolio.fridgerescue.feature.rescue.domain.GetRescueQueueUseCase
 import com.portfolio.fridgerescue.feature.rescue.domain.RescueUrgency
 import com.portfolio.fridgerescue.feature.rescue.domain.SaveFoodItemResult
 import com.portfolio.fridgerescue.feature.rescue.domain.SaveFoodItemUseCase
+import com.portfolio.fridgerescue.feature.intake.SaveIntakeCandidatesUseCase
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -39,10 +40,13 @@ class RescueViewModel(
     private val clock: Clock = Clock.systemDefaultZone(),
     private val getRescueQueue: GetRescueQueueUseCase = GetRescueQueueUseCase(),
     private val saveFoodItem: SaveFoodItemUseCase = SaveFoodItemUseCase(repository),
+    private val saveCandidateBatch: SaveIntakeCandidatesUseCase =
+        SaveIntakeCandidatesUseCase(repository, clock),
 ) : ViewModel() {
     private val eventChannel = Channel<RescueEvent>(Channel.BUFFERED)
     private val editorState = MutableStateFlow<FoodEditorUiState?>(null)
     private val detailSelection = MutableStateFlow<DetailSelection?>(null)
+    private val savingIntakeDraftId = MutableStateFlow<String?>(null)
 
     val events = eventChannel.receiveAsFlow()
 
@@ -67,13 +71,29 @@ class RescueViewModel(
         }
     }
 
-    private val intakeDraft = intakeDraftRepository?.latestActiveDraft ?: flowOf(null)
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val intakeReview = intakeDraftRepository?.latestActiveDraft?.flatMapLatest { draft ->
+        if (draft == null) {
+            flowOf(null)
+        } else {
+            combine(
+                intakeDraftRepository.observeCandidates(draft.id),
+                savingIntakeDraftId,
+            ) { candidates, savingId ->
+                IntakeReviewUiState(
+                    draft = draft,
+                    candidates = candidates,
+                    isSaving = savingId == draft.id,
+                )
+            }
+        }
+    } ?: flowOf(null)
 
-    val uiState = combine(repository.foodItems, editorState, detailState, intakeDraft) {
+    val uiState = combine(repository.foodItems, editorState, detailState, intakeReview) {
             foodItems,
             editor,
             detail,
-            draft,
+            review,
         ->
         val queueItems = getRescueQueue(foodItems, LocalDate.now(clock))
         RescueUiState.Content(
@@ -89,7 +109,7 @@ class RescueViewModel(
             },
             editor = editor,
             detail = detail,
-            intakeDraft = draft,
+            intakeReview = review,
         )
     }
         .stateIn(
@@ -109,6 +129,10 @@ class RescueViewModel(
                 ?.copy(discardReason = action.value)
             is RescueAction.UndoMutation -> undoMutation(action.eventId)
             is RescueAction.DismissIntakeDraft -> dismissIntakeDraft(action.draftId)
+            is RescueAction.ToggleIntakeCandidate -> viewModelScope.launch {
+                intakeDraftRepository?.updateCandidateSelected(action.candidateId, action.selected)
+            }
+            is RescueAction.SaveIntakeCandidates -> saveIntakeCandidates(action.draftId)
             RescueAction.StartAddFood -> editorState.value = FoodEditorUiState()
             is RescueAction.StartEditFood -> startEdit(action.foodItemId)
             RescueAction.DismissEditor -> editorState.value = null
@@ -230,6 +254,23 @@ class RescueViewModel(
 
     private fun dismissIntakeDraft(draftId: String) {
         viewModelScope.launch { intakeDraftRepository?.archive(draftId) }
+    }
+
+    private fun saveIntakeCandidates(draftId: String) {
+        if (savingIntakeDraftId.value != null) return
+        viewModelScope.launch {
+            savingIntakeDraftId.value = draftId
+            try {
+                val candidates = intakeDraftRepository?.candidates(draftId).orEmpty()
+                val count = saveCandidateBatch(candidates)
+                if (count > 0) {
+                    intakeDraftRepository?.archive(draftId)
+                    eventChannel.send(RescueEvent.ShowBatchSaved(count))
+                }
+            } finally {
+                savingIntakeDraftId.value = null
+            }
+        }
     }
 
     companion object {

@@ -32,6 +32,9 @@ private class DefaultAppContainer(
     }
 
     override val intakeDraftRepository: IntakeDraftRepository by lazy {
-        RoomIntakeDraftRepository(database.intakeDraftDao())
+        RoomIntakeDraftRepository(
+            dao = database.intakeDraftDao(),
+            candidateDao = database.intakeCandidateDao(),
+        )
     }
 }
