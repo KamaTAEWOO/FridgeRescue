@@ -11,6 +11,7 @@
 | [ANDROID_PLAN.md](./ANDROID_PLAN.md) | Compose 아키텍처, 모듈, 데이터, 테스트 계획 | 확정 초안 |
 | [EDGE_CASES.md](./EDGE_CASES.md) | OCR, 날짜, 중복, 알림, 오프라인 예외처리 | 확정 초안 |
 | [TEST_CASES.md](./TEST_CASES.md) | 요구사항 추적, 자동화·수동 QA 테스트 케이스 | 준비 완료 |
+| [IMPLEMENTATION_STATUS.md](./IMPLEMENTATION_STATUS.md) | 구현 완료 범위, 검증 결과, 후속 범위 | MVP 완료 |
 
 ## 현재 제품 결정
 
@@ -36,6 +37,6 @@
 
 ## 문서 버전
 
-- 버전: 1.0
-- 기준일: 2026-09-01
-- 현재 단계: Milestone 1 — 로컬 구조 큐 개발 중
+- 버전: 1.1
+- 기준일: 2026-09-02
+- 현재 단계: 로컬 MVP 구현·검증 완료
