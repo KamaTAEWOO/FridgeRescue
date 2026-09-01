@@ -23,6 +23,12 @@ Kotlin과 Jetpack Compose로 제작할 Android 포트폴리오 프로젝트입�
 
 기능 구현 전에는 필요한 라이브러리를 추가하지 않습니다. 각 기능을 시작할 때 공식 문서와 기획서 기준으로 의존성을 도입합니다.
 
-## 기획 상태
+## 기획 문서
 
-제품 기획서와 예외처리 명세 작성은 완료했으며, 기능 구현은 아직 시작하지 않았습니다.
+- [문서 인덱스](./docs/README.md)
+- [제품 기획서](./docs/PRODUCT_SPEC.md)
+- [사용자 흐름](./docs/USER_FLOW.md)
+- [Android Compose 구현 계획](./docs/ANDROID_PLAN.md)
+- [예외처리 기준](./docs/EDGE_CASES.md)
+
+제품 기획과 구현 기준을 먼저 확정하며, 기능 구현은 아직 시작하지 않았습니다.
