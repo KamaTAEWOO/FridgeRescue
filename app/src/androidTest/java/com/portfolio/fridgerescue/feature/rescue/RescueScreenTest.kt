@@ -178,6 +178,8 @@ class RescueScreenTest {
         composeRule.onAllNodesWithText("설정").assertCountEquals(2)
         composeRule.onNodeWithText("알림이 꺼져 있어요. 홈의 임박 배지는 계속 동작해요.")
             .assertIsDisplayed()
+        composeRule.onNodeWithText("조용한 시간").assertIsDisplayed()
+        composeRule.onNodeWithText("22:00~08:00에는 알림을 보내지 않아요.").assertIsDisplayed()
         composeRule.onNodeWithText("개인정보").assertIsDisplayed()
     }
 

@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -17,6 +18,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.portfolio.fridgerescue.R
+import com.portfolio.fridgerescue.feature.notification.NotificationSettings
 
 enum class AppSection { HOME, REPORT, SETTINGS }
 
@@ -93,7 +95,9 @@ private fun MetricCard(count: Int, label: String, modifier: Modifier = Modifier)
 @Composable
 fun SettingsContent(
     notificationsEnabled: Boolean,
+    notificationSettings: NotificationSettings,
     onOpenNotificationSettings: () -> Unit,
+    onQuietHoursEnabledChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -119,6 +123,19 @@ fun SettingsContent(
             Button(onClick = onOpenNotificationSettings) {
                 Text(stringResource(R.string.settings_notification_action))
             }
+        }
+        SettingCard(
+            title = stringResource(R.string.settings_quiet_hours_title),
+            description = stringResource(
+                R.string.settings_quiet_hours_description,
+                notificationSettings.quietStartHour,
+                notificationSettings.quietEndHour,
+            ),
+        ) {
+            Switch(
+                checked = notificationSettings.quietHoursEnabled,
+                onCheckedChange = onQuietHoursEnabledChange,
+            )
         }
         SettingCard(
             title = stringResource(R.string.settings_privacy_title),

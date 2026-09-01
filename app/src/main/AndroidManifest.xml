@@ -23,5 +23,8 @@
                 <data android:mimeType="application/pdf" />
             </intent-filter>
         </activity>
+        <receiver
+            android:name=".feature.notification.NotificationFoodActionReceiver"
+            android:exported="false" />
     </application>
 </manifest>

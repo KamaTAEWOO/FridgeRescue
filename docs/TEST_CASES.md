@@ -56,14 +56,15 @@
 | Compose UI | `TC-INTAKE-012`, `TC-OCR-006` | `RescueScreenTest` | `AUTOMATED` |
 | Compose UI | `TC-OCR-005` | `RescueScreenTest` | `AUTOMATED` |
 | JVM 단위 | `TC-NOTIFY-001`, `TC-ACTION-006`, `TC-DATE-003` | `GetNotificationCandidatesUseCaseTest` | `AUTOMATED` |
+| JVM 단위 | `TC-NOTIFY-006`, `TC-NOTIFY-010` 액션 매핑 | `QuietHoursPolicyTest`, `NotificationFoodActionReceiverTest` | `AUTOMATED` |
 | Compose UI | `TC-NOTIFY-003` | `RescueScreenTest` | `AUTOMATED` |
 | JVM 단위 | `TC-REPORT-001~003` | `GetReportMetricsUseCaseTest` | `AUTOMATED` |
 | Compose UI | `TC-REPORT-004`, `TC-SETTINGS-001` | `RescueScreenTest` | `AUTOMATED` |
 | JVM 단위 | `TC-PRIVACY-003` | `SharedIntakeCacheCleanerTest` | `AUTOMATED` |
 
-- 자동 테스트: 65개
+- 자동 테스트: 68개
 - 최근 검증 환경: `FridgeRescue_API_36`, Android API 36
-- 최근 결과: JVM 30개 통과, Room·Intent·Compose 계측 35개 통과
+- 최근 결과: JVM 33개 통과, Room·Intent·Compose 계측 35개 통과
 
 ## 3. 자동화 계층
 

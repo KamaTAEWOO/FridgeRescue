@@ -57,6 +57,7 @@ import com.portfolio.fridgerescue.feature.report.AppSection
 import com.portfolio.fridgerescue.feature.report.ReportContent
 import com.portfolio.fridgerescue.feature.report.ReportMetrics
 import com.portfolio.fridgerescue.feature.report.SettingsContent
+import com.portfolio.fridgerescue.feature.notification.NotificationSettings
 import com.portfolio.fridgerescue.ui.theme.FridgeRescueTheme
 import java.time.LocalDate
 
@@ -70,8 +71,10 @@ fun RescueScreen(
     onRequestNotificationPermission: () -> Unit = {},
     selectedSection: AppSection = AppSection.HOME,
     reportMetrics: ReportMetrics = ReportMetrics(),
+    notificationSettings: NotificationSettings = NotificationSettings(),
     onSectionSelected: (AppSection) -> Unit = {},
     onOpenNotificationSettings: () -> Unit = {},
+    onQuietHoursEnabledChange: (Boolean) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -116,7 +119,9 @@ fun RescueScreen(
                     AppSection.REPORT -> ReportContent(reportMetrics)
                     AppSection.SETTINGS -> SettingsContent(
                         notificationsEnabled = notificationsEnabled,
+                        notificationSettings = notificationSettings,
                         onOpenNotificationSettings = onOpenNotificationSettings,
+                        onQuietHoursEnabledChange = onQuietHoursEnabledChange,
                     )
                 }
             }

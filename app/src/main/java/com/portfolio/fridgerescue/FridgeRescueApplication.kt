@@ -8,6 +8,8 @@ import com.portfolio.fridgerescue.core.data.repository.RoomIntakeDraftRepository
 import com.portfolio.fridgerescue.feature.notification.ExpiryNotificationWorker
 import com.portfolio.fridgerescue.core.data.repository.RoomFoodRepository
 import com.portfolio.fridgerescue.feature.intake.SharedIntakeCacheCleaner
+import com.portfolio.fridgerescue.feature.notification.DataStoreNotificationSettingsRepository
+import com.portfolio.fridgerescue.feature.notification.NotificationSettingsRepository
 
 class FridgeRescueApplication : Application() {
     val container: AppContainer by lazy { DefaultAppContainer(this) }
@@ -22,6 +24,7 @@ class FridgeRescueApplication : Application() {
 interface AppContainer {
     val foodRepository: FoodRepository
     val intakeDraftRepository: IntakeDraftRepository
+    val notificationSettingsRepository: NotificationSettingsRepository
 }
 
 private class DefaultAppContainer(
@@ -44,5 +47,9 @@ private class DefaultAppContainer(
             dao = database.intakeDraftDao(),
             candidateDao = database.intakeCandidateDao(),
         )
+    }
+
+    override val notificationSettingsRepository: NotificationSettingsRepository by lazy {
+        DataStoreNotificationSettingsRepository(application)
     }
 }

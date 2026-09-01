@@ -126,6 +126,8 @@
     <string name="settings_notification_on">알림이 켜져 있어요. D-3, D-1, 당일에 하루 한 번 요약해요.</string>
     <string name="settings_notification_off">알림이 꺼져 있어요. 홈의 임박 배지는 계속 동작해요.</string>
     <string name="settings_notification_action">시스템 알림 설정 열기</string>
+    <string name="settings_quiet_hours_title">조용한 시간</string>
+    <string name="settings_quiet_hours_description">%1$02d:00~%2$02d:00에는 알림을 보내지 않아요.</string>
     <string name="settings_privacy_title">개인정보</string>
     <string name="settings_privacy_description">영수증 원문과 식재료는 서버로 전송하지 않고 이 기기에만 저장해요.</string>
     <string name="settings_data_title">데이터 관리</string>

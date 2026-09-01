@@ -13,6 +13,8 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
@@ -21,7 +23,9 @@ import com.portfolio.fridgerescue.MainActivity
 import com.portfolio.fridgerescue.R
 import com.portfolio.fridgerescue.feature.intake.SharedIntakeCacheCleaner
 import java.time.Instant
+import java.util.UUID
 import java.time.LocalDate
+import java.time.ZonedDateTime
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.flow.first
 
@@ -31,6 +35,13 @@ class ExpiryNotificationWorker(
 ) : CoroutineWorker(appContext, params) {
     override suspend fun doWork(): Result {
         SharedIntakeCacheCleaner.clean(applicationContext.cacheDir, Instant.now())
+        val application = applicationContext as FridgeRescueApplication
+        val settings = application.container.notificationSettingsRepository.settings.first()
+        val quietDelay = QuietHoursPolicy().delayUntilAllowed(ZonedDateTime.now(), settings)
+        if (quietDelay != null) {
+            scheduleAfterQuietHours(quietDelay)
+            return Result.success()
+        }
         val notificationManager = NotificationManagerCompat.from(applicationContext)
         if (!notificationManager.areNotificationsEnabled()) return Result.success()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
@@ -42,7 +53,6 @@ class ExpiryNotificationWorker(
             return Result.success()
         }
 
-        val application = applicationContext as FridgeRescueApplication
         val foods = application.container.foodRepository.foodItems.first()
         val candidates = GetNotificationCandidatesUseCase()(foods, LocalDate.now())
         if (candidates.isEmpty()) {
@@ -66,11 +76,49 @@ class ExpiryNotificationWorker(
             .setContentText(body)
             .setStyle(NotificationCompat.BigTextStyle().bigText(body))
             .setContentIntent(contentIntent)
+            .addAction(
+                0,
+                applicationContext.getString(R.string.rescue_mark_consumed),
+                foodActionIntent(candidates.first().id.value, NotificationFoodActionReceiver.ACTION_CONSUME, 1),
+            )
+            .addAction(
+                0,
+                applicationContext.getString(R.string.action_still_here),
+                foodActionIntent(candidates.first().id.value, NotificationFoodActionReceiver.ACTION_STILL_HERE, 2),
+            )
+            .addAction(
+                0,
+                applicationContext.getString(R.string.action_discard),
+                foodActionIntent(candidates.first().id.value, NotificationFoodActionReceiver.ACTION_DISCARD, 3),
+            )
             .setAutoCancel(true)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .build()
         notificationManager.notify(NOTIFICATION_ID, notification)
         return Result.success()
+    }
+
+    private fun foodActionIntent(foodId: String, action: String, requestCode: Int): PendingIntent =
+        PendingIntent.getBroadcast(
+            applicationContext,
+            requestCode,
+            Intent(applicationContext, NotificationFoodActionReceiver::class.java).apply {
+                this.action = action
+                putExtra(NotificationFoodActionReceiver.EXTRA_FOOD_ID, foodId)
+                putExtra(NotificationFoodActionReceiver.EXTRA_OPERATION_ID, UUID.randomUUID().toString())
+            },
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+
+    private fun scheduleAfterQuietHours(delay: java.time.Duration) {
+        val request = OneTimeWorkRequestBuilder<ExpiryNotificationWorker>()
+            .setInitialDelay(delay.toMillis(), TimeUnit.MILLISECONDS)
+            .build()
+        WorkManager.getInstance(applicationContext).enqueueUniqueWork(
+            QUIET_HOURS_WORK_NAME,
+            ExistingWorkPolicy.REPLACE,
+            request,
+        )
     }
 
     private fun createChannel() {
@@ -89,8 +137,9 @@ class ExpiryNotificationWorker(
 
     companion object {
         private const val UNIQUE_WORK_NAME = "daily-expiry-summary"
+        private const val QUIET_HOURS_WORK_NAME = "quiet-hours-expiry-summary"
         private const val CHANNEL_ID = "expiry-summary"
-        private const val NOTIFICATION_ID = 1001
+        internal const val NOTIFICATION_ID = 1001
 
         fun schedule(context: Context) {
             val request = PeriodicWorkRequestBuilder<ExpiryNotificationWorker>(1, TimeUnit.DAYS)

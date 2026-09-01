@@ -20,6 +20,8 @@ import com.portfolio.fridgerescue.feature.rescue.domain.SaveFoodItemResult
 import com.portfolio.fridgerescue.feature.rescue.domain.SaveFoodItemUseCase
 import com.portfolio.fridgerescue.feature.intake.SaveIntakeCandidatesUseCase
 import com.portfolio.fridgerescue.feature.report.GetReportMetricsUseCase
+import com.portfolio.fridgerescue.feature.notification.NotificationSettings
+import com.portfolio.fridgerescue.feature.notification.NotificationSettingsRepository
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -38,6 +40,7 @@ import kotlinx.coroutines.launch
 class RescueViewModel(
     private val repository: FoodRepository,
     private val intakeDraftRepository: IntakeDraftRepository? = null,
+    private val notificationSettingsRepository: NotificationSettingsRepository? = null,
     private val clock: Clock = Clock.systemDefaultZone(),
     private val getRescueQueue: GetRescueQueueUseCase = GetRescueQueueUseCase(),
     private val saveFoodItem: SaveFoodItemUseCase = SaveFoodItemUseCase(repository),
@@ -51,6 +54,19 @@ class RescueViewModel(
     private val showImportOptions = MutableStateFlow(false)
 
     val events = eventChannel.receiveAsFlow()
+
+    val notificationSettings = (notificationSettingsRepository?.settings ?: flowOf(NotificationSettings()))
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = NotificationSettings(),
+        )
+
+    fun setQuietHoursEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            notificationSettingsRepository?.setQuietHoursEnabled(enabled)
+        }
+    }
 
     val reportMetrics = combine(repository.foodItems, repository.events) { foodItems, events ->
         GetReportMetricsUseCase()(foodItems, events)
@@ -311,6 +327,7 @@ class RescueViewModel(
                 RescueViewModel(
                     repository = application.container.foodRepository,
                     intakeDraftRepository = application.container.intakeDraftRepository,
+                    notificationSettingsRepository = application.container.notificationSettingsRepository,
                 )
             }
         }
