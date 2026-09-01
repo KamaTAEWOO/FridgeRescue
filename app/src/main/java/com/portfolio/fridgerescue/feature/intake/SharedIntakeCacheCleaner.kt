@@ -14,4 +14,8 @@ object SharedIntakeCacheCleaner {
             .filter { it.isFile && it.lastModified() < cutoff }
             .count(File::delete)
     }
+
+    fun clearAll(cacheRoot: File): Int = listOf("shared-intake", "receipt-capture")
+        .flatMap { directory -> File(cacheRoot, directory).listFiles().orEmpty().asList() }
+        .count { file -> file.deleteRecursively() }
 }

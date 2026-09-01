@@ -40,4 +40,27 @@ class SharedIntakeCacheCleanerTest {
             root.deleteRecursively()
         }
     }
+
+    @Test
+    fun TC_PRIVACY_004_clear_all_removes_managed_cache_only() {
+        val root = Files.createTempDirectory("fridge-rescue-clear-cache").toFile()
+        try {
+            val shared = File(root, "shared-intake/item.jpg").apply {
+                parentFile?.mkdirs()
+                writeText("shared")
+            }
+            val capture = File(root, "receipt-capture/item.jpg").apply {
+                parentFile?.mkdirs()
+                writeText("capture")
+            }
+            val unrelated = File(root, "keep.txt").apply { writeText("keep") }
+
+            assertEquals(2, SharedIntakeCacheCleaner.clearAll(root))
+            assertFalse(shared.exists())
+            assertFalse(capture.exists())
+            assertTrue(unrelated.exists())
+        } finally {
+            root.deleteRecursively()
+        }
+    }
 }

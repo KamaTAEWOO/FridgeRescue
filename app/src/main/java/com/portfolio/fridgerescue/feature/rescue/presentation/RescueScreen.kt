@@ -80,6 +80,8 @@ fun RescueScreen(
     selectedSection: AppSection = AppSection.HOME,
     reportMetrics: ReportMetrics = ReportMetrics(),
     notificationSettings: NotificationSettings = NotificationSettings(),
+    isDeletingData: Boolean = false,
+    onDeleteAllData: () -> Unit = {},
     onSectionSelected: (AppSection) -> Unit = {},
     onOpenNotificationSettings: () -> Unit = {},
     onQuietHoursEnabledChange: (Boolean) -> Unit = {},
@@ -130,6 +132,8 @@ fun RescueScreen(
                         notificationSettings = notificationSettings,
                         onOpenNotificationSettings = onOpenNotificationSettings,
                         onQuietHoursEnabledChange = onQuietHoursEnabledChange,
+                        isDeletingData = isDeletingData,
+                        onDeleteAllData = onDeleteAllData,
                     )
                 }
             }

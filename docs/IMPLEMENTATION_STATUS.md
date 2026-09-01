@@ -15,12 +15,12 @@
 | 행동 이력 | 먹음·아직 있음·일부 사용·버림, 폐기 사유, 멱등키, 실행 취소 | 트랜잭션·UI |
 | 알림 | D-3·D-1·당일 요약, 직접 행동, 홈 배지, 22~08시 조용한 시간 | 규칙 단위·권한 UI |
 | 리포트 | 구조·폐기 건수, 금액 미추정 원칙, 반복 폐기 힌트 | 단위·UI |
-| 완성도 | 다크 모드, 넓은 화면 2열, 24시간 캐시 정리, CI | Lint·에뮬레이터 |
+| 완성도 | 다크 모드, 넓은 화면 2열, 24시간 캐시 정리, 확인 후 전체 로컬 데이터 삭제, CI | Lint·Room·Compose UI·에뮬레이터 |
 
 ## 검증 결과
 
-- `testDebugUnitTest`: 46개 통과
-- `connectedDebugAndroidTest`: 41개 통과 (`FridgeRescue_API_36`)
+- `testDebugUnitTest`: 47개 통과
+- `connectedDebugAndroidTest`: 43개 통과 (`FridgeRescue_API_36`)
 - `lintDebug`: 오류 없음
 - `assembleDebug`: APK 생성 성공
 - 앱 콜드 스타트와 공유 인텐트, 실제 온디바이스 OCR, 시스템 카메라 진입 수동 확인

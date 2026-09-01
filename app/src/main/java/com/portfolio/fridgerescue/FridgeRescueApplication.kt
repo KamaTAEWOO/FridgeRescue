@@ -2,6 +2,8 @@ package com.portfolio.fridgerescue
 
 import android.app.Application
 import com.portfolio.fridgerescue.core.data.database.FridgeRescueDatabase
+import com.portfolio.fridgerescue.core.data.DataDeletionManager
+import com.portfolio.fridgerescue.core.data.LocalDataDeletionManager
 import com.portfolio.fridgerescue.core.data.repository.FoodRepository
 import com.portfolio.fridgerescue.core.data.repository.IntakeDraftRepository
 import com.portfolio.fridgerescue.core.data.repository.RoomIntakeDraftRepository
@@ -25,6 +27,7 @@ interface AppContainer {
     val foodRepository: FoodRepository
     val intakeDraftRepository: IntakeDraftRepository
     val notificationSettingsRepository: NotificationSettingsRepository
+    val dataDeletionManager: DataDeletionManager
 }
 
 private class DefaultAppContainer(
@@ -51,5 +54,9 @@ private class DefaultAppContainer(
 
     override val notificationSettingsRepository: NotificationSettingsRepository by lazy {
         DataStoreNotificationSettingsRepository(application)
+    }
+
+    override val dataDeletionManager: DataDeletionManager by lazy {
+        LocalDataDeletionManager(application, database, notificationSettingsRepository)
     }
 }

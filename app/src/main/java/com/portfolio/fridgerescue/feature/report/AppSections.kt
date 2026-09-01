@@ -7,12 +7,20 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -28,6 +36,7 @@ fun ReportContent(metrics: ReportMetrics, modifier: Modifier = Modifier) {
         modifier = modifier
             .fillMaxSize()
             .widthIn(max = 720.dp)
+            .verticalScroll(rememberScrollState())
             .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
@@ -98,12 +107,16 @@ fun SettingsContent(
     notificationSettings: NotificationSettings,
     onOpenNotificationSettings: () -> Unit,
     onQuietHoursEnabledChange: (Boolean) -> Unit,
+    isDeletingData: Boolean = false,
+    onDeleteAllData: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
+    var showDeleteConfirmation by rememberSaveable { mutableStateOf(false) }
     Column(
         modifier = modifier
             .fillMaxSize()
             .widthIn(max = 720.dp)
+            .verticalScroll(rememberScrollState())
             .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
@@ -144,6 +157,39 @@ fun SettingsContent(
         SettingCard(
             title = stringResource(R.string.settings_data_title),
             description = stringResource(R.string.settings_data_description),
+        ) {
+            Button(
+                onClick = { showDeleteConfirmation = true },
+                enabled = !isDeletingData,
+            ) {
+                Text(
+                    if (isDeletingData) {
+                        stringResource(R.string.settings_delete_in_progress)
+                    } else {
+                        stringResource(R.string.settings_delete_action)
+                    },
+                )
+            }
+        }
+    }
+    if (showDeleteConfirmation) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirmation = false },
+            title = { Text(stringResource(R.string.settings_delete_confirm_title)) },
+            text = { Text(stringResource(R.string.settings_delete_confirm_description)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteConfirmation = false
+                        onDeleteAllData()
+                    },
+                ) { Text(stringResource(R.string.settings_delete_confirm_action)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirmation = false }) {
+                    Text(stringResource(R.string.editor_cancel))
+                }
+            },
         )
     }
 }

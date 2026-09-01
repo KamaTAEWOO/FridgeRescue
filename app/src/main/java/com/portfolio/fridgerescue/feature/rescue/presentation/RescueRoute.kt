@@ -57,6 +57,7 @@ fun RescueRoute(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val reportMetrics by viewModel.reportMetrics.collectAsStateWithLifecycle()
     val notificationSettings by viewModel.notificationSettings.collectAsStateWithLifecycle()
+    val isDeletingData by viewModel.isDeletingData.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val consumedMessage = stringResource(R.string.action_consumed_message)
     val stillHereMessage = stringResource(R.string.action_still_here_message)
@@ -66,6 +67,8 @@ fun RescueRoute(
     val addedMessage = stringResource(R.string.food_added_message)
     val updatedMessage = stringResource(R.string.food_updated_message)
     val batchSavedMessage = stringResource(R.string.intake_batch_saved)
+    val dataDeletedMessage = stringResource(R.string.settings_delete_done)
+    val dataDeletionFailedMessage = stringResource(R.string.settings_delete_failed)
 
     LaunchedEffect(
         viewModel,
@@ -77,6 +80,8 @@ fun RescueRoute(
         addedMessage,
         updatedMessage,
         batchSavedMessage,
+        dataDeletedMessage,
+        dataDeletionFailedMessage,
     ) {
         viewModel.events.collect { event ->
             when (event) {
@@ -108,6 +113,12 @@ fun RescueRoute(
                 is RescueEvent.ShowBatchSaved -> {
                     snackbarHostState.showSnackbar(batchSavedMessage.format(event.count))
                 }
+                RescueEvent.ShowDataDeleted -> {
+                    snackbarHostState.showSnackbar(dataDeletedMessage)
+                }
+                RescueEvent.ShowDataDeletionFailed -> {
+                    snackbarHostState.showSnackbar(dataDeletionFailedMessage)
+                }
             }
         }
     }
@@ -131,6 +142,8 @@ fun RescueRoute(
         selectedSection = selectedSection,
         reportMetrics = reportMetrics,
         notificationSettings = notificationSettings,
+        isDeletingData = isDeletingData,
+        onDeleteAllData = viewModel::deleteAllData,
         onQuietHoursEnabledChange = viewModel::setQuietHoursEnabled,
         onSectionSelected = { selectedSection = it },
         onOpenNotificationSettings = {

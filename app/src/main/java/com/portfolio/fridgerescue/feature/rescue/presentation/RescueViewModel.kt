@@ -8,6 +8,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.portfolio.fridgerescue.FridgeRescueApplication
 import com.portfolio.fridgerescue.core.data.repository.FoodRepository
 import com.portfolio.fridgerescue.core.data.repository.IntakeDraftRepository
+import com.portfolio.fridgerescue.core.data.DataDeletionManager
 import com.portfolio.fridgerescue.core.model.FoodActionRequest
 import com.portfolio.fridgerescue.core.model.FoodActionType
 import com.portfolio.fridgerescue.core.model.FoodItemId
@@ -32,6 +33,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -45,6 +47,7 @@ class RescueViewModel(
     private val repository: FoodRepository,
     private val intakeDraftRepository: IntakeDraftRepository? = null,
     private val notificationSettingsRepository: NotificationSettingsRepository? = null,
+    private val dataDeletionManager: DataDeletionManager? = null,
     private val clock: Clock = Clock.systemDefaultZone(),
     private val getRescueQueue: GetRescueQueueUseCase = GetRescueQueueUseCase(),
     private val filterRescueQueue: FilterRescueQueueUseCase = FilterRescueQueueUseCase(),
@@ -58,6 +61,9 @@ class RescueViewModel(
     private val savingIntakeDraftId = MutableStateFlow<String?>(null)
     private val showImportOptions = MutableStateFlow(false)
     private val pantryFilter = MutableStateFlow(PantryFilter())
+    private val deletingData = MutableStateFlow(false)
+
+    val isDeletingData = deletingData.asStateFlow()
 
     val events = eventChannel.receiveAsFlow()
 
@@ -71,6 +77,27 @@ class RescueViewModel(
     fun setQuietHoursEnabled(enabled: Boolean) {
         viewModelScope.launch {
             notificationSettingsRepository?.setQuietHoursEnabled(enabled)
+        }
+    }
+
+    fun deleteAllData() {
+        if (deletingData.value) return
+        viewModelScope.launch {
+            deletingData.value = true
+            try {
+                dataDeletionManager?.deleteAll()
+                    ?: error("DataDeletionManager is unavailable")
+                pantryFilter.value = PantryFilter()
+                editorState.value = null
+                detailSelection.value = null
+                eventChannel.send(RescueEvent.ShowDataDeleted)
+            } catch (cancellation: CancellationException) {
+                throw cancellation
+            } catch (_: Exception) {
+                eventChannel.send(RescueEvent.ShowDataDeletionFailed)
+            } finally {
+                deletingData.value = false
+            }
         }
     }
 
@@ -370,6 +397,7 @@ class RescueViewModel(
                     repository = application.container.foodRepository,
                     intakeDraftRepository = application.container.intakeDraftRepository,
                     notificationSettingsRepository = application.container.notificationSettingsRepository,
+                    dataDeletionManager = application.container.dataDeletionManager,
                 )
             }
         }

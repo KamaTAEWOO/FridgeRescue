@@ -109,4 +109,6 @@ sealed interface RescueEvent {
     ) : RescueEvent
 
     data class ShowBatchSaved(val count: Int) : RescueEvent
+    data object ShowDataDeleted : RescueEvent
+    data object ShowDataDeletionFailed : RescueEvent
 }

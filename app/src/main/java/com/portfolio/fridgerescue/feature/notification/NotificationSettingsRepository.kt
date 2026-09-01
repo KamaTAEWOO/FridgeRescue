@@ -21,6 +21,7 @@ data class NotificationSettings(
 interface NotificationSettingsRepository {
     val settings: Flow<NotificationSettings>
     suspend fun setQuietHoursEnabled(enabled: Boolean)
+    suspend fun clear()
 }
 
 private val Context.notificationDataStore by preferencesDataStore(name = "notification_settings")
@@ -41,6 +42,10 @@ class DataStoreNotificationSettingsRepository(
 
     override suspend fun setQuietHoursEnabled(enabled: Boolean) {
         context.notificationDataStore.edit { it[QUIET_HOURS_ENABLED] = enabled }
+    }
+
+    override suspend fun clear() {
+        context.notificationDataStore.edit { it.clear() }
     }
 
     private companion object {

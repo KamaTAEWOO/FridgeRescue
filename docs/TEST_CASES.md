@@ -68,10 +68,11 @@
 | Room·Compose UI | `TC-DATA-016`, `TC-OCR-007` 편집 복구·화면 | `IntakeCandidateDaoTest`, `RescueScreenTest` | `AUTOMATED` |
 | JVM 단위 | `TC-BARCODE-001~006` | `Gs1BarcodeParserTest`, `ReceiveBarcodeUseCaseTest`, `SaveIntakeCandidatesUseCaseTest` | `AUTOMATED` |
 | Room 마이그레이션·Compose UI | `TC-DATA-017`, `TC-BARCODE-007`, `TC-INTAKE-013` | `DatabaseMigrationTest`, `RescueScreenTest` | `AUTOMATED` |
+| JVM·Room·Compose UI | `TC-PRIVACY-004`, `005` 전체 삭제 | `SharedIntakeCacheCleanerTest`, `DataDeletionManagerTest`, `RescueScreenTest` | `AUTOMATED` |
 
-- 자동 테스트: 87개
+- 자동 테스트: 90개
 - 최근 검증 환경: `FridgeRescue_API_36`, Android API 36
-- 최근 결과: JVM 46개 통과, Room·Intent·Compose 계측 41개 통과
+- 최근 결과: JVM 47개 통과, Room·Intent·Compose 계측 43개 통과
 
 ## 3. 자동화 계층
 

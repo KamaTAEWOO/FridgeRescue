@@ -192,6 +192,25 @@ class RescueScreenTest {
     }
 
     @Test
+    fun TC_PRIVACY_005_delete_all_requires_explicit_irreversible_confirmation() {
+        var deletionRequested = false
+        setScreen(
+            uiState = contentState(),
+            selectedSection = AppSection.SETTINGS,
+            onDeleteAllData = { deletionRequested = true },
+        )
+
+        composeRule.onNodeWithText("이 기기의 모든 데이터 삭제").performScrollTo().performClick()
+
+        composeRule.onNodeWithText("모든 데이터를 삭제할까요?").assertIsDisplayed()
+        composeRule.onNodeWithText(
+            "식재료, 변경 이력, 가져오기 초안, 공유 파일 캐시와 앱 설정이 이 기기에서 영구 삭제됩니다. 이 작업은 되돌릴 수 없어요.",
+        ).assertIsDisplayed()
+        composeRule.onNodeWithText("영구 삭제").performClick()
+        assertEquals(true, deletionRequested)
+    }
+
+    @Test
     fun TC_INTAKE_001_shared_text_draft_is_shown_for_review() {
         val draft = IntakeDraft(
             id = "shared-text",
@@ -566,6 +585,7 @@ class RescueScreenTest {
         notificationsEnabled: Boolean = true,
         selectedSection: AppSection = AppSection.HOME,
         reportMetrics: ReportMetrics = ReportMetrics(),
+        onDeleteAllData: () -> Unit = {},
     ) {
         composeRule.setContent {
             FridgeRescueTheme {
@@ -576,6 +596,7 @@ class RescueScreenTest {
                     notificationsEnabled = notificationsEnabled,
                     selectedSection = selectedSection,
                     reportMetrics = reportMetrics,
+                    onDeleteAllData = onDeleteAllData,
                 )
             }
         }
