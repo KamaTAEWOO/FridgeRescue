@@ -45,6 +45,7 @@
 - WorkManager D-3·D-1·당일 요약 알림, 알림 직접 행동, 권한 거부 시 홈 배지, 조용한 시간
 - 구조·폐기 리포트와 반복 폐기 장보기 힌트
 - 전체 로컬 데이터 삭제, 시스템 다크 모드, 폰·넓은 화면 적응형 Compose UI
+- 선택형 익명 계정, 초대 코드 가족 참가, Ktor 서버와 결정적 최신 변경 우선 동기화
 
 ## 기술 구성
 
@@ -53,6 +54,7 @@
 - ML Kit Text Recognition v2 한국어 번들 모델, Google Code Scanner 16.1
 - Android 8.0(API 26) 이상, compile/target SDK 36, JDK 17
 - R8·리소스 축소·외부 키 서명, Baseline Profile, Macrobenchmark, GitHub Actions
+- Ktor 3.5, kotlinx.serialization, Bearer 인증, 원자적 JSON 서버 저장
 
 ```text
 외부 공유·카메라·Photo Picker·바코드
@@ -91,3 +93,4 @@
 - [QA 결과](./docs/QA_REPORT_2026-09-02.md)
 - [성능 측정](./docs/PERFORMANCE.md)
 - [릴리스 가이드](./docs/RELEASE.md)
+- [가족 공유·서버 동기화](./docs/FAMILY_SYNC.md)

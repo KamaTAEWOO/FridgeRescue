@@ -8,6 +8,8 @@ import com.portfolio.fridgerescue.core.data.database.FridgeRescueDatabase
 import com.portfolio.fridgerescue.core.data.database.IntakeCandidateEntity
 import com.portfolio.fridgerescue.feature.notification.NotificationSettings
 import com.portfolio.fridgerescue.feature.notification.NotificationSettingsRepository
+import com.portfolio.fridgerescue.feature.family.FamilySyncSettings
+import com.portfolio.fridgerescue.feature.family.FamilySyncSettingsRepository
 import java.io.File
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -39,16 +41,27 @@ class DataDeletionManagerTest {
     fun TC_PRIVACY_005_confirmed_deletion_clears_room_settings_and_managed_cache() = runBlocking {
         database.intakeCandidateDao().insertAll(listOf(candidate()))
         val settings = FakeNotificationSettingsRepository()
+        val familySettings = FakeFamilySettingsRepository()
         val cacheFile = File(context.cacheDir, "shared-intake/deletion-test.jpg").apply {
             parentFile?.mkdirs()
             writeText("private receipt")
         }
 
-        LocalDataDeletionManager(context, database, settings).deleteAll()
+        LocalDataDeletionManager(context, database, settings, familySettings).deleteAll()
 
         assertEquals(emptyList<Any>(), database.intakeCandidateDao().findForDraft("draft"))
         assertTrue(settings.cleared)
+        assertTrue(familySettings.cleared)
         assertFalse(cacheFile.exists())
+    }
+
+    private class FakeFamilySettingsRepository : FamilySyncSettingsRepository {
+        override val settings: Flow<FamilySyncSettings> = MutableStateFlow(FamilySyncSettings())
+        var cleared = false
+        override suspend fun saveAccount(settings: FamilySyncSettings) = Unit
+        override suspend fun saveFamily(familyId: String, familyName: String, inviteCode: String) = Unit
+        override suspend fun saveSync(revision: Long, syncedAtEpochMillis: Long) = Unit
+        override suspend fun clear() { cleared = true }
     }
 
     private fun candidate() = IntakeCandidateEntity(

@@ -13,6 +13,12 @@ interface FoodItemDao {
     @Query("SELECT * FROM food_items WHERE id = :id LIMIT 1")
     suspend fun findById(id: String): FoodItemEntity?
 
+    @Query("SELECT * FROM food_items")
+    suspend fun loadAll(): List<FoodItemEntity>
+
     @Upsert
     suspend fun upsert(foodItem: FoodItemEntity)
+
+    @Upsert
+    suspend fun upsertAll(foodItems: List<FoodItemEntity>)
 }

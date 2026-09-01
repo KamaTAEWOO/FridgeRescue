@@ -38,7 +38,9 @@ import com.portfolio.fridgerescue.feature.rescue.presentation.RescueScreen
 import com.portfolio.fridgerescue.feature.rescue.presentation.RescueUiState
 import com.portfolio.fridgerescue.feature.rescue.presentation.IntakeReviewUiState
 import com.portfolio.fridgerescue.feature.rescue.presentation.PantryFilterTestTags
+import com.portfolio.fridgerescue.feature.rescue.presentation.FamilySyncUiState
 import com.portfolio.fridgerescue.feature.rescue.presentation.RescueViewModel
+import com.portfolio.fridgerescue.feature.family.FamilySyncSettings
 import com.portfolio.fridgerescue.ui.theme.FridgeRescueTheme
 import com.portfolio.fridgerescue.feature.report.AppSection
 import com.portfolio.fridgerescue.feature.report.ReportMetrics
@@ -190,6 +192,37 @@ class RescueScreenTest {
         composeRule.onNodeWithText("조용한 시간").assertIsDisplayed()
         composeRule.onNodeWithText("22:00~08:00에는 알림을 보내지 않아요.").assertIsDisplayed()
         composeRule.onNodeWithText("개인정보").assertIsDisplayed()
+    }
+
+    @Test
+    fun TC_FAMILY_001_disconnected_settings_offer_explicit_opt_in() {
+        setScreen(uiState = contentState(), selectedSection = AppSection.SETTINGS)
+
+        composeRule.onNodeWithText("가족 공유").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("서버 주소").assertIsDisplayed()
+        composeRule.onNodeWithText("표시 이름").performScrollTo().assertIsDisplayed()
+    }
+
+    @Test
+    fun TC_FAMILY_002_connected_settings_show_invite_and_sync_actions() {
+        setScreen(
+            uiState = contentState(),
+            selectedSection = AppSection.SETTINGS,
+            familySyncState = FamilySyncUiState(
+                settings = FamilySyncSettings(
+                    serverBaseUrl = "https://family.example",
+                    accountId = "account",
+                    accessToken = "token",
+                    displayName = "민지",
+                    familyId = "family",
+                    familyName = "우리 가족",
+                    inviteCode = "ABC123",
+                ),
+            ),
+        )
+
+        composeRule.onNodeWithText("내 초대 코드: ABC123").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("지금 동기화").performScrollTo().assertIsDisplayed()
     }
 
     @Test
@@ -448,7 +481,8 @@ class RescueScreenTest {
 
         composeRule.onNodeWithTag(PantryFilterTestTags.SEARCH).performTextInput("두부")
 
-        composeRule.onNodeWithText("두부").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithTag(PantryFilterTestTags.LIST).performScrollToIndex(4)
+        composeRule.onAllNodesWithText("두부").assertCountEquals(2)
         composeRule.onAllNodesWithText("우유").assertCountEquals(0)
 
         composeRule.onNodeWithTag(PantryFilterTestTags.SEARCH).performTextReplacement("없는 재료")
@@ -587,6 +621,7 @@ class RescueScreenTest {
         notificationsEnabled: Boolean = true,
         selectedSection: AppSection = AppSection.HOME,
         reportMetrics: ReportMetrics = ReportMetrics(),
+        familySyncState: FamilySyncUiState = FamilySyncUiState(),
         onDeleteAllData: () -> Unit = {},
     ) {
         composeRule.setContent {
@@ -598,6 +633,7 @@ class RescueScreenTest {
                     notificationsEnabled = notificationsEnabled,
                     selectedSection = selectedSection,
                     reportMetrics = reportMetrics,
+                    familySyncState = familySyncState,
                     onDeleteAllData = onDeleteAllData,
                 )
             }

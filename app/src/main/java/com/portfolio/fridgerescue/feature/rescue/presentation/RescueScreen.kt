@@ -81,7 +81,11 @@ fun RescueScreen(
     reportMetrics: ReportMetrics = ReportMetrics(),
     notificationSettings: NotificationSettings = NotificationSettings(),
     isDeletingData: Boolean = false,
+    familySyncState: FamilySyncUiState = FamilySyncUiState(),
     onDeleteAllData: () -> Unit = {},
+    onCreateFamilyAccount: (String, String) -> Unit = { _, _ -> },
+    onJoinFamily: (String) -> Unit = {},
+    onSyncFamily: () -> Unit = {},
     onSectionSelected: (AppSection) -> Unit = {},
     onOpenNotificationSettings: () -> Unit = {},
     onQuietHoursEnabledChange: (Boolean) -> Unit = {},
@@ -133,7 +137,11 @@ fun RescueScreen(
                         onOpenNotificationSettings = onOpenNotificationSettings,
                         onQuietHoursEnabledChange = onQuietHoursEnabledChange,
                         isDeletingData = isDeletingData,
+                        familySyncState = familySyncState,
                         onDeleteAllData = onDeleteAllData,
+                        onCreateFamilyAccount = onCreateFamilyAccount,
+                        onJoinFamily = onJoinFamily,
+                        onSyncFamily = onSyncFamily,
                     )
                 }
             }

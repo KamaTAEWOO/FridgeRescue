@@ -9,6 +9,8 @@
 .cxx
 app/build
 benchmark/build
+server/build
+sync-contract/build
 keystore.properties
 *.jks
 *.keystore

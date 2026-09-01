@@ -12,6 +12,9 @@ import com.portfolio.fridgerescue.core.data.repository.RoomFoodRepository
 import com.portfolio.fridgerescue.feature.intake.SharedIntakeCacheCleaner
 import com.portfolio.fridgerescue.feature.notification.DataStoreNotificationSettingsRepository
 import com.portfolio.fridgerescue.feature.notification.NotificationSettingsRepository
+import com.portfolio.fridgerescue.feature.family.DataStoreFamilySyncSettingsRepository
+import com.portfolio.fridgerescue.feature.family.FamilySyncManager
+import com.portfolio.fridgerescue.feature.family.FamilySyncSettingsRepository
 
 class FridgeRescueApplication : Application() {
     val container: AppContainer by lazy { DefaultAppContainer(this) }
@@ -28,6 +31,7 @@ interface AppContainer {
     val intakeDraftRepository: IntakeDraftRepository
     val notificationSettingsRepository: NotificationSettingsRepository
     val dataDeletionManager: DataDeletionManager
+    val familySyncManager: FamilySyncManager
 }
 
 private class DefaultAppContainer(
@@ -56,7 +60,20 @@ private class DefaultAppContainer(
         DataStoreNotificationSettingsRepository(application)
     }
 
+    private val familySyncSettingsRepository: FamilySyncSettingsRepository by lazy {
+        DataStoreFamilySyncSettingsRepository(application)
+    }
+
+    override val familySyncManager: FamilySyncManager by lazy {
+        FamilySyncManager(database, database.foodItemDao(), familySyncSettingsRepository)
+    }
+
     override val dataDeletionManager: DataDeletionManager by lazy {
-        LocalDataDeletionManager(application, database, notificationSettingsRepository)
+        LocalDataDeletionManager(
+            application,
+            database,
+            notificationSettingsRepository,
+            familySyncSettingsRepository,
+        )
     }
 }

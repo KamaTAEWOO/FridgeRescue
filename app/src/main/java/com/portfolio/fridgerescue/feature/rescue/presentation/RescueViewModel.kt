@@ -25,6 +25,8 @@ import com.portfolio.fridgerescue.feature.intake.FindDuplicateCandidatesUseCase
 import com.portfolio.fridgerescue.feature.report.GetReportMetricsUseCase
 import com.portfolio.fridgerescue.feature.notification.NotificationSettings
 import com.portfolio.fridgerescue.feature.notification.NotificationSettingsRepository
+import com.portfolio.fridgerescue.feature.family.FamilySyncManager
+import com.portfolio.fridgerescue.feature.family.FamilySyncSettings
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -48,6 +50,7 @@ class RescueViewModel(
     private val intakeDraftRepository: IntakeDraftRepository? = null,
     private val notificationSettingsRepository: NotificationSettingsRepository? = null,
     private val dataDeletionManager: DataDeletionManager? = null,
+    private val familySyncManager: FamilySyncManager? = null,
     private val clock: Clock = Clock.systemDefaultZone(),
     private val getRescueQueue: GetRescueQueueUseCase = GetRescueQueueUseCase(),
     private val filterRescueQueue: FilterRescueQueueUseCase = FilterRescueQueueUseCase(),
@@ -62,8 +65,21 @@ class RescueViewModel(
     private val showImportOptions = MutableStateFlow(false)
     private val pantryFilter = MutableStateFlow(PantryFilter())
     private val deletingData = MutableStateFlow(false)
+    private val familySyncBusy = MutableStateFlow(false)
+    private val familySyncFeedback = MutableStateFlow<FamilySyncFeedback?>(null)
 
     val isDeletingData = deletingData.asStateFlow()
+
+    val familySyncState = combine(
+        familySyncManager?.settings ?: flowOf(FamilySyncSettings()),
+        familySyncBusy,
+        familySyncFeedback,
+    ) { settings, busy, feedback -> FamilySyncUiState(settings, busy, feedback) }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = FamilySyncUiState(),
+        )
 
     val events = eventChannel.receiveAsFlow()
 
@@ -97,6 +113,39 @@ class RescueViewModel(
                 eventChannel.send(RescueEvent.ShowDataDeletionFailed)
             } finally {
                 deletingData.value = false
+            }
+        }
+    }
+
+    fun createFamilyAccount(serverUrl: String, displayName: String) = familyOperation(
+        success = FamilySyncFeedback.ACCOUNT_CREATED,
+    ) { require(displayName.isNotBlank()); familySyncManager?.createAccount(serverUrl, displayName) }
+
+    fun joinFamily(inviteCode: String) = familyOperation(FamilySyncFeedback.FAMILY_JOINED) {
+        require(inviteCode.isNotBlank()); familySyncManager?.joinFamily(inviteCode)
+    }
+
+    fun syncFamily() = familyOperation(FamilySyncFeedback.SYNCED) {
+        familySyncManager?.syncNow()
+    }
+
+    private fun familyOperation(
+        success: FamilySyncFeedback,
+        block: suspend () -> Unit,
+    ) {
+        if (familySyncBusy.value) return
+        viewModelScope.launch {
+            familySyncBusy.value = true
+            familySyncFeedback.value = null
+            try {
+                block()
+                familySyncFeedback.value = success
+            } catch (cancellation: CancellationException) {
+                throw cancellation
+            } catch (_: Exception) {
+                familySyncFeedback.value = FamilySyncFeedback.FAILED
+            } finally {
+                familySyncBusy.value = false
             }
         }
     }
@@ -398,6 +447,7 @@ class RescueViewModel(
                     intakeDraftRepository = application.container.intakeDraftRepository,
                     notificationSettingsRepository = application.container.notificationSettingsRepository,
                     dataDeletionManager = application.container.dataDeletionManager,
+                    familySyncManager = application.container.familySyncManager,
                 )
             }
         }
@@ -416,3 +466,11 @@ class RescueViewModel(
         val filter: PantryFilter,
     )
 }
+
+enum class FamilySyncFeedback { ACCOUNT_CREATED, FAMILY_JOINED, SYNCED, FAILED }
+
+data class FamilySyncUiState(
+    val settings: FamilySyncSettings = FamilySyncSettings(),
+    val isWorking: Boolean = false,
+    val feedback: FamilySyncFeedback? = null,
+)

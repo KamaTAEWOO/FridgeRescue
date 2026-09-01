@@ -58,6 +58,7 @@ fun RescueRoute(
     val reportMetrics by viewModel.reportMetrics.collectAsStateWithLifecycle()
     val notificationSettings by viewModel.notificationSettings.collectAsStateWithLifecycle()
     val isDeletingData by viewModel.isDeletingData.collectAsStateWithLifecycle()
+    val familySyncState by viewModel.familySyncState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val consumedMessage = stringResource(R.string.action_consumed_message)
     val stillHereMessage = stringResource(R.string.action_still_here_message)
@@ -143,7 +144,11 @@ fun RescueRoute(
         reportMetrics = reportMetrics,
         notificationSettings = notificationSettings,
         isDeletingData = isDeletingData,
+        familySyncState = familySyncState,
         onDeleteAllData = viewModel::deleteAllData,
+        onCreateFamilyAccount = viewModel::createFamilyAccount,
+        onJoinFamily = viewModel::joinFamily,
+        onSyncFamily = viewModel::syncFamily,
         onQuietHoursEnabledChange = viewModel::setQuietHoursEnabled,
         onSectionSelected = { selectedSection = it },
         onOpenNotificationSettings = {
