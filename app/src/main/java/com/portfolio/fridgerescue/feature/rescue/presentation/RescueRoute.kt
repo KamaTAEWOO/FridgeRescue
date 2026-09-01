@@ -1,12 +1,15 @@
 package com.portfolio.fridgerescue.feature.rescue.presentation
 
 import android.Manifest
+import android.content.Intent
 import android.os.Build
+import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -15,11 +18,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.core.app.NotificationManagerCompat
 import com.portfolio.fridgerescue.R
 import com.portfolio.fridgerescue.core.model.FoodActionType
+import com.portfolio.fridgerescue.feature.report.AppSection
 
 @Composable
 fun RescueRoute(
@@ -27,13 +34,26 @@ fun RescueRoute(
     onPickReceipt: () -> Unit = {},
 ) {
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    var selectedSection by rememberSaveable { mutableStateOf(AppSection.HOME) }
     var notificationsEnabled by rememberSaveable {
         mutableStateOf(NotificationManagerCompat.from(context).areNotificationsEnabled())
     }
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission(),
     ) { granted -> notificationsEnabled = granted }
+    DisposableEffect(lifecycleOwner, context) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                notificationsEnabled = NotificationManagerCompat.from(context)
+                    .areNotificationsEnabled()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val reportMetrics by viewModel.reportMetrics.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val consumedMessage = stringResource(R.string.action_consumed_message)
     val stillHereMessage = stringResource(R.string.action_still_here_message)
@@ -102,6 +122,15 @@ fun RescueRoute(
                 notificationsEnabled = NotificationManagerCompat.from(context)
                     .areNotificationsEnabled()
             }
+        },
+        selectedSection = selectedSection,
+        reportMetrics = reportMetrics,
+        onSectionSelected = { selectedSection = it },
+        onOpenNotificationSettings = {
+            context.startActivity(
+                Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                    .putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName),
+            )
         },
     )
 }

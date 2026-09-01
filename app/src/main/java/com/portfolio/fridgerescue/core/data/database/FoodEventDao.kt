@@ -8,6 +8,9 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface FoodEventDao {
+    @Query("SELECT * FROM food_events ORDER BY occurred_at_epoch_millis DESC, event_id DESC")
+    fun observeAll(): Flow<List<FoodEventEntity>>
+
     @Query(
         "SELECT * FROM food_events WHERE food_item_id = :foodItemId " +
             "ORDER BY occurred_at_epoch_millis DESC, event_id DESC",

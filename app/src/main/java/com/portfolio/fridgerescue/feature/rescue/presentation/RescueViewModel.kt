@@ -19,6 +19,7 @@ import com.portfolio.fridgerescue.feature.rescue.domain.RescueUrgency
 import com.portfolio.fridgerescue.feature.rescue.domain.SaveFoodItemResult
 import com.portfolio.fridgerescue.feature.rescue.domain.SaveFoodItemUseCase
 import com.portfolio.fridgerescue.feature.intake.SaveIntakeCandidatesUseCase
+import com.portfolio.fridgerescue.feature.report.GetReportMetricsUseCase
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -50,6 +51,14 @@ class RescueViewModel(
     private val showImportOptions = MutableStateFlow(false)
 
     val events = eventChannel.receiveAsFlow()
+
+    val reportMetrics = combine(repository.foodItems, repository.events) { foodItems, events ->
+        GetReportMetricsUseCase()(foodItems, events)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = com.portfolio.fridgerescue.feature.report.ReportMetrics(),
+    )
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val detailState = detailSelection.flatMapLatest { selection ->

@@ -23,10 +23,11 @@ class InMemoryFoodRepository(
     initialItems: List<FoodItem> = emptyList(),
 ) : FoodRepository {
     private val items = MutableStateFlow(initialItems)
-    private val events = MutableStateFlow<List<FoodEvent>>(emptyList())
+    private val eventValues = MutableStateFlow<List<FoodEvent>>(emptyList())
     private val mutex = Mutex()
 
     override val foodItems: Flow<List<FoodItem>> = items.asStateFlow()
+    override val events: Flow<List<FoodEvent>> = eventValues.asStateFlow()
 
     override suspend fun findById(id: FoodItemId): FoodItem? =
         items.value.firstOrNull { it.id == id }
@@ -99,12 +100,12 @@ class InMemoryFoodRepository(
     override suspend fun undo(eventId: String, operationId: String): FoodMutationResult =
         mutex.withLock {
             duplicate(operationId)?.let { return@withLock it }
-            val target = events.value.firstOrNull { it.id == eventId }
+            val target = eventValues.value.firstOrNull { it.id == eventId }
                 ?: return@withLock FoodMutationResult.NotFound
-            if (target.type !in REVERSIBLE_TYPES || events.value.any { it.revertsEventId == eventId }) {
+            if (target.type !in REVERSIBLE_TYPES || eventValues.value.any { it.revertsEventId == eventId }) {
                 return@withLock FoodMutationResult.Conflict
             }
-            if (events.value.lastOrNull { it.foodItemId == target.foodItemId }?.id != eventId) {
+            if (eventValues.value.lastOrNull { it.foodItemId == target.foodItemId }?.id != eventId) {
                 return@withLock FoodMutationResult.Conflict
             }
             val current = findById(target.foodItemId) ?: return@withLock FoodMutationResult.NotFound
@@ -122,7 +123,7 @@ class InMemoryFoodRepository(
         }
 
     override fun observeEvents(foodItemId: FoodItemId): Flow<List<FoodEvent>> =
-        events.map { all -> all.filter { it.foodItemId == foodItemId }.asReversed() }
+        eventValues.map { all -> all.filter { it.foodItemId == foodItemId }.asReversed() }
 
     private fun setItem(foodItem: FoodItem) {
         items.update { currentItems ->
@@ -138,7 +139,7 @@ class InMemoryFoodRepository(
     }
 
     private fun duplicate(operationId: String): FoodMutationResult.Duplicate? =
-        events.value.firstOrNull { it.operationId == operationId }
+        eventValues.value.firstOrNull { it.operationId == operationId }
             ?.let(FoodMutationResult::Duplicate)
 
     private fun addEvent(
@@ -161,7 +162,7 @@ class InMemoryFoodRepository(
             occurredAt = Instant.now(),
             revertsEventId = revertsEventId,
         )
-        events.update { it + event }
+        eventValues.update { it + event }
         return FoodMutationResult.Applied(event)
     }
 

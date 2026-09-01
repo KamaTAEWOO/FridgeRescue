@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface FoodRepository {
     val foodItems: Flow<List<FoodItem>>
+    val events: Flow<List<FoodEvent>>
 
     suspend fun findById(id: FoodItemId): FoodItem?
 

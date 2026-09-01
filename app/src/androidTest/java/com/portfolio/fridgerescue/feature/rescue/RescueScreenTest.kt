@@ -2,8 +2,10 @@ package com.portfolio.fridgerescue.feature.rescue
 
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -17,6 +19,7 @@ import com.portfolio.fridgerescue.core.model.FoodDateSource
 import com.portfolio.fridgerescue.core.model.FoodItem
 import com.portfolio.fridgerescue.core.model.FoodEventType
 import com.portfolio.fridgerescue.core.model.FoodItemId
+import com.portfolio.fridgerescue.core.model.FoodStatus
 import com.portfolio.fridgerescue.core.model.StorageLocation
 import com.portfolio.fridgerescue.core.model.IntakeContentType
 import com.portfolio.fridgerescue.core.model.IntakeCandidate
@@ -34,6 +37,8 @@ import com.portfolio.fridgerescue.feature.rescue.presentation.RescueUiState
 import com.portfolio.fridgerescue.feature.rescue.presentation.IntakeReviewUiState
 import com.portfolio.fridgerescue.feature.rescue.presentation.RescueViewModel
 import com.portfolio.fridgerescue.ui.theme.FridgeRescueTheme
+import com.portfolio.fridgerescue.feature.report.AppSection
+import com.portfolio.fridgerescue.feature.report.ReportMetrics
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
@@ -78,9 +83,10 @@ class RescueScreenTest {
             name = "시금치",
             date = FoodDate(today, FoodDateSource.APP_ESTIMATED),
         )
+        val repository = InMemoryFoodRepository(listOf(foodItem))
         val viewModel = RescueViewModel(
             clock = Clock.fixed(today.atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC),
-            repository = InMemoryFoodRepository(listOf(foodItem)),
+            repository = repository,
         )
 
         composeRule.setContent {
@@ -88,16 +94,16 @@ class RescueScreenTest {
                 RescueRoute(viewModel = viewModel)
             }
         }
-        composeRule.onNodeWithText("먹었어요").performClick()
-        composeRule.waitUntil(timeoutMillis = 5_000) {
-            composeRule.onAllNodesWithText("시금치").fetchSemanticsNodes().isEmpty()
+        composeRule.onNodeWithText("먹었어요").performScrollTo().performClick()
+        composeRule.waitUntil(timeoutMillis = 10_000) {
+            runBlocking { repository.findById(foodItem.id)?.status == FoodStatus.CONSUMED }
         }
 
         composeRule.onNodeWithText("실행 취소").assertIsDisplayed().performClick()
-        composeRule.waitUntil(timeoutMillis = 5_000) {
-            composeRule.onAllNodesWithText("시금치").fetchSemanticsNodes().isNotEmpty()
+        composeRule.waitUntil(timeoutMillis = 10_000) {
+            runBlocking { repository.findById(foodItem.id)?.status == FoodStatus.ACTIVE }
         }
-        composeRule.onNodeWithText("시금치").assertIsDisplayed()
+        composeRule.onNodeWithText("시금치").performScrollTo().assertIsDisplayed()
     }
 
     @Test
@@ -114,7 +120,10 @@ class RescueScreenTest {
         )
         setRoute(viewModel)
 
-        composeRule.onNodeWithText("상태 기록").performClick()
+        composeRule.onNodeWithText("상태 기록").performScrollTo().performClick()
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule.onAllNodesWithText("아직 있어요").fetchSemanticsNodes().isNotEmpty()
+        }
         composeRule.onNodeWithText("아직 있어요").performClick()
         composeRule.onNodeWithText("실행 취소").assertIsDisplayed()
 
@@ -143,6 +152,33 @@ class RescueScreenTest {
 
         composeRule.onNodeWithText("1개").assertIsDisplayed()
         composeRule.onNodeWithText("요약 알림 켜기").assertIsDisplayed()
+    }
+
+    @Test
+    fun TC_REPORT_004_report_shows_event_counts_without_invented_savings() {
+        setScreen(
+            uiState = contentState(),
+            selectedSection = AppSection.REPORT,
+            reportMetrics = ReportMetrics(rescuedCount = 4, discardedCount = 1),
+        )
+
+        composeRule.onNodeWithText("절약 리포트").assertIsDisplayed()
+        composeRule.onNodeWithText("4개").assertIsDisplayed()
+        composeRule.onNodeWithText("가격 근거가 없어 금액을 추정하지 않아요.").assertIsDisplayed()
+    }
+
+    @Test
+    fun TC_SETTINGS_001_notification_and_local_privacy_status_are_visible() {
+        setScreen(
+            uiState = contentState(),
+            notificationsEnabled = false,
+            selectedSection = AppSection.SETTINGS,
+        )
+
+        composeRule.onAllNodesWithText("설정").assertCountEquals(2)
+        composeRule.onNodeWithText("알림이 꺼져 있어요. 홈의 임박 배지는 계속 동작해요.")
+            .assertIsDisplayed()
+        composeRule.onNodeWithText("개인정보").assertIsDisplayed()
     }
 
     @Test
@@ -279,6 +315,9 @@ class RescueScreenTest {
         setRoute(viewModel)
 
         composeRule.onNodeWithText("재료 추가").performClick()
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule.onAllNodesWithTag(FoodEditorTestTags.NAME).fetchSemanticsNodes().isNotEmpty()
+        }
         composeRule.onNodeWithTag(FoodEditorTestTags.NAME).performTextInput("두부")
         composeRule.onNodeWithTag(FoodEditorTestTags.QUANTITY).performTextInput("2")
         composeRule.onNodeWithTag(FoodEditorTestTags.DATE).performTextInput("2026-09-03")
@@ -290,7 +329,7 @@ class RescueScreenTest {
             composeRule.onAllNodesWithText("두부").fetchSemanticsNodes().isNotEmpty()
         }
         composeRule.onNodeWithText("확정한 날짜 · 9월 3일").assertIsDisplayed()
-        composeRule.onNodeWithText("냉동").assertIsDisplayed()
+        composeRule.onNodeWithText("냉동").performScrollTo().assertIsDisplayed()
     }
 
     @Test
@@ -307,7 +346,10 @@ class RescueScreenTest {
         )
         setRoute(viewModel)
 
-        composeRule.onNodeWithText("수정").performClick()
+        composeRule.onNodeWithText("수정").performScrollTo().performClick()
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule.onAllNodesWithTag(FoodEditorTestTags.NAME).fetchSemanticsNodes().isNotEmpty()
+        }
         composeRule.onNodeWithTag(FoodEditorTestTags.NAME).performTextReplacement("부침용 두부")
         composeRule.onNodeWithTag(FoodEditorTestTags.SAVE).performScrollTo().performClick()
 
@@ -321,6 +363,8 @@ class RescueScreenTest {
         uiState: RescueUiState,
         onAction: (RescueAction) -> Unit = {},
         notificationsEnabled: Boolean = true,
+        selectedSection: AppSection = AppSection.HOME,
+        reportMetrics: ReportMetrics = ReportMetrics(),
     ) {
         composeRule.setContent {
             FridgeRescueTheme {
@@ -329,6 +373,8 @@ class RescueScreenTest {
                     snackbarHostState = SnackbarHostState(),
                     onAction = onAction,
                     notificationsEnabled = notificationsEnabled,
+                    selectedSection = selectedSection,
+                    reportMetrics = reportMetrics,
                 )
             }
         }

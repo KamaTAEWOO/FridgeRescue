@@ -56,10 +56,12 @@
 | Compose UI | `TC-INTAKE-012`, `TC-OCR-006` | `RescueScreenTest` | `AUTOMATED` |
 | JVM 단위 | `TC-NOTIFY-001`, `TC-ACTION-006`, `TC-DATE-003` | `GetNotificationCandidatesUseCaseTest` | `AUTOMATED` |
 | Compose UI | `TC-NOTIFY-003` | `RescueScreenTest` | `AUTOMATED` |
+| JVM 단위 | `TC-REPORT-001~003` | `GetReportMetricsUseCaseTest` | `AUTOMATED` |
+| Compose UI | `TC-REPORT-004`, `TC-SETTINGS-001` | `RescueScreenTest` | `AUTOMATED` |
 
-- 자동 테스트: 56개
+- 자동 테스트: 61개
 - 최근 검증 환경: `FridgeRescue_API_36`, Android API 36
-- 최근 결과: JVM 26개 통과, Room·Intent·Compose 계측 30개 통과
+- 최근 결과: JVM 29개 통과, Room·Intent·Compose 계측 32개 통과
 
 ## 3. 자동화 계층
 
@@ -134,6 +136,13 @@
 | `TC-REPORT-001` | `FR-REPORT-01` | 소비 3건, 폐기 2건 | 기간 리포트 계산 | 구조 3건·폐기 2건 표시 | P0 |
 | `TC-REPORT-002` | `FR-REPORT-02` | 가격 데이터가 없음 | 절약 리포트 생성 | 확정 절약 금액을 표시하지 않음 | P0 |
 | `TC-REPORT-003` | `FR-REPORT-03` | 같은 카테고리 폐기가 반복 | 힌트 계산 | 해당 카테고리 장보기 힌트 생성 | P1 |
+| `TC-REPORT-004` | `FR-REPORT-01`, `FR-REPORT-02` | 구조 4건, 폐기 1건이고 가격 데이터가 없음 | 리포트 화면 표시 | 구조·폐기 수와 금액 미추정 안내를 함께 표시 | P0 |
+
+### 설정
+
+| ID | 연결 기준 | Given | When | Then | 우선순위 |
+|---|---|---|---|---|---|
+| `TC-SETTINGS-001` | `FR-NOTIFY-04`, 개인정보 원칙 | 알림 권한이 꺼져 있음 | 설정 화면 표시 | 알림 상태, 홈 배지 대체 동작, 로컬 저장 안내를 표시 | P0 |
 
 ## 5. 데이터 계층 테스트
 

@@ -28,6 +28,8 @@ class RoomFoodRepository(
 ) : FoodRepository {
     override val foodItems: Flow<List<FoodItem>> = foodItemDao.observeAll()
         .map { entities -> entities.map { it.toDomain() } }
+    override val events: Flow<List<FoodEvent>> = foodEventDao.observeAll()
+        .map { entities -> entities.map { it.toDomain() } }
 
     override suspend fun findById(id: FoodItemId): FoodItem? =
         foodItemDao.findById(id.value)?.toDomain()

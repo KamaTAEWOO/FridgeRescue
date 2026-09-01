@@ -3,6 +3,7 @@ package com.portfolio.fridgerescue.feature.rescue.presentation
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -14,11 +15,19 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -44,6 +53,10 @@ import com.portfolio.fridgerescue.feature.rescue.components.FoodRescueCard
 import com.portfolio.fridgerescue.feature.intake.IntakeDraftSheet
 import com.portfolio.fridgerescue.feature.intake.IntakeOptionsSheet
 import com.portfolio.fridgerescue.feature.rescue.domain.GetRescueQueueUseCase
+import com.portfolio.fridgerescue.feature.report.AppSection
+import com.portfolio.fridgerescue.feature.report.ReportContent
+import com.portfolio.fridgerescue.feature.report.ReportMetrics
+import com.portfolio.fridgerescue.feature.report.SettingsContent
 import com.portfolio.fridgerescue.ui.theme.FridgeRescueTheme
 import java.time.LocalDate
 
@@ -55,11 +68,34 @@ fun RescueScreen(
     onPickReceipt: () -> Unit = {},
     notificationsEnabled: Boolean = true,
     onRequestNotificationPermission: () -> Unit = {},
+    selectedSection: AppSection = AppSection.HOME,
+    reportMetrics: ReportMetrics = ReportMetrics(),
+    onSectionSelected: (AppSection) -> Unit = {},
+    onOpenNotificationSettings: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
         modifier = modifier.fillMaxSize(),
         snackbarHost = { SnackbarHost(snackbarHostState) },
+        bottomBar = {
+            if (uiState is RescueUiState.Content) {
+                NavigationBar {
+                    AppSection.entries.forEach { section ->
+                        NavigationBarItem(
+                            selected = selectedSection == section,
+                            onClick = { onSectionSelected(section) },
+                            icon = {
+                                Icon(
+                                    imageVector = section.icon(),
+                                    contentDescription = null,
+                                )
+                            },
+                            label = { Text(section.label()) },
+                        )
+                    }
+                }
+            }
+        },
         containerColor = MaterialTheme.colorScheme.background,
     ) { innerPadding ->
         Box(
@@ -70,28 +106,41 @@ fun RescueScreen(
         ) {
             when (uiState) {
                 RescueUiState.Loading -> LoadingContent()
-                is RescueUiState.Content -> RescueContent(
-                    uiState = uiState,
-                    onAction = onAction,
-                    notificationsEnabled = notificationsEnabled,
-                    onRequestNotificationPermission = onRequestNotificationPermission,
-                )
+                is RescueUiState.Content -> when (selectedSection) {
+                    AppSection.HOME -> RescueContent(
+                        uiState = uiState,
+                        onAction = onAction,
+                        notificationsEnabled = notificationsEnabled,
+                        onRequestNotificationPermission = onRequestNotificationPermission,
+                    )
+                    AppSection.REPORT -> ReportContent(reportMetrics)
+                    AppSection.SETTINGS -> SettingsContent(
+                        notificationsEnabled = notificationsEnabled,
+                        onOpenNotificationSettings = onOpenNotificationSettings,
+                    )
+                }
             }
         }
     }
 
-    val editor = (uiState as? RescueUiState.Content)?.editor
+    val editor = (uiState as? RescueUiState.Content)?.editor?.takeIf {
+        selectedSection == AppSection.HOME
+    }
     if (editor != null) {
         FoodEditorSheet(
             state = editor,
             onAction = onAction,
         )
     }
-    val detail = (uiState as? RescueUiState.Content)?.detail
+    val detail = (uiState as? RescueUiState.Content)?.detail?.takeIf {
+        selectedSection == AppSection.HOME
+    }
     if (detail != null) {
         FoodDetailSheet(state = detail, onAction = onAction)
     }
-    val intakeReview = (uiState as? RescueUiState.Content)?.intakeReview
+    val intakeReview = (uiState as? RescueUiState.Content)?.intakeReview?.takeIf {
+        selectedSection == AppSection.HOME
+    }
     if (intakeReview != null) {
         IntakeDraftSheet(
             state = intakeReview,
@@ -107,7 +156,8 @@ fun RescueScreen(
             },
         )
     }
-    val showImportOptions = (uiState as? RescueUiState.Content)?.showImportOptions == true
+    val showImportOptions = selectedSection == AppSection.HOME &&
+        (uiState as? RescueUiState.Content)?.showImportOptions == true
     if (showImportOptions) {
         IntakeOptionsSheet(
             onDismiss = { onAction(RescueAction.DismissImportOptions) },
@@ -143,73 +193,110 @@ private fun RescueContent(
     notificationsEnabled: Boolean,
     onRequestNotificationPermission: () -> Unit,
 ) {
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .widthIn(max = 720.dp),
-        contentPadding = PaddingValues(horizontal = 20.dp, vertical = 24.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        item {
-            RescueHeader(
-                onImport = { onAction(RescueAction.OpenImportOptions) },
-                onAddFood = { onAction(RescueAction.StartAddFood) },
-            )
-        }
-
-        item {
-            SummaryRow(
-                urgentCount = uiState.urgentCount,
-                needsReviewCount = uiState.needsReviewCount,
-            )
-        }
-
-        if (uiState.urgentCount > 0 && !notificationsEnabled) {
-            item {
-                NotificationPermissionCard(onRequestNotificationPermission)
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        if (maxWidth >= 840.dp) {
+            Row(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .fillMaxSize()
+                    .widthIn(max = 1120.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                LazyColumn(
+                    modifier = Modifier.weight(0.42f),
+                    contentPadding = PaddingValues(start = 24.dp, top = 24.dp, bottom = 24.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    overviewItems(
+                        uiState = uiState,
+                        onAction = onAction,
+                        notificationsEnabled = notificationsEnabled,
+                        onRequestNotificationPermission = onRequestNotificationPermission,
+                    )
+                }
+                LazyColumn(
+                    modifier = Modifier.weight(0.58f),
+                    contentPadding = PaddingValues(start = 12.dp, end = 24.dp, top = 24.dp, bottom = 24.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    queueItems(uiState, onAction)
+                }
             }
-        }
-
-        item {
-            Column(modifier = Modifier.padding(top = 12.dp, bottom = 4.dp)) {
-                Text(
-                    text = stringResource(R.string.rescue_queue_title),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                )
-                Text(
-                    text = stringResource(R.string.rescue_queue_description),
-                    modifier = Modifier.padding(top = 4.dp),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        }
-
-        if (uiState.items.isEmpty()) {
-            item { EmptyContent() }
         } else {
-            items(
-                items = uiState.items,
-                key = { it.foodItem.id.value },
-            ) { queueItem ->
-                FoodRescueCard(
-                    queueItem = queueItem,
-                    onEdit = {
-                        onAction(RescueAction.StartEditFood(queueItem.foodItem.id))
-                    },
-                    onOpenActions = {
-                        onAction(RescueAction.OpenFoodActions(queueItem.foodItem.id))
-                    },
-                    onMarkConsumed = {
-                        onAction(RescueAction.MarkConsumed(queueItem.foodItem.id))
-                    },
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .widthIn(max = 720.dp),
+                contentPadding = PaddingValues(horizontal = 20.dp, vertical = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                overviewItems(
+                    uiState = uiState,
+                    onAction = onAction,
+                    notificationsEnabled = notificationsEnabled,
+                    onRequestNotificationPermission = onRequestNotificationPermission,
                 )
+                queueItems(uiState, onAction)
             }
         }
-
-        item { Spacer(modifier = Modifier.height(16.dp)) }
     }
+}
+
+private fun LazyListScope.overviewItems(
+    uiState: RescueUiState.Content,
+    onAction: (RescueAction) -> Unit,
+    notificationsEnabled: Boolean,
+    onRequestNotificationPermission: () -> Unit,
+) {
+    item {
+        RescueHeader(
+            onImport = { onAction(RescueAction.OpenImportOptions) },
+            onAddFood = { onAction(RescueAction.StartAddFood) },
+        )
+    }
+    item {
+        SummaryRow(
+            urgentCount = uiState.urgentCount,
+            needsReviewCount = uiState.needsReviewCount,
+        )
+    }
+    if (uiState.urgentCount > 0 && !notificationsEnabled) {
+        item { NotificationPermissionCard(onRequestNotificationPermission) }
+    }
+}
+
+private fun LazyListScope.queueItems(
+    uiState: RescueUiState.Content,
+    onAction: (RescueAction) -> Unit,
+) {
+    item {
+        Column(modifier = Modifier.padding(top = 12.dp, bottom = 4.dp)) {
+            Text(
+                text = stringResource(R.string.rescue_queue_title),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+            )
+            Text(
+                text = stringResource(R.string.rescue_queue_description),
+                modifier = Modifier.padding(top = 4.dp),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+    if (uiState.items.isEmpty()) {
+        item { EmptyContent() }
+    } else {
+        items(items = uiState.items, key = { it.foodItem.id.value }) { queueItem ->
+            FoodRescueCard(
+                queueItem = queueItem,
+                onEdit = { onAction(RescueAction.StartEditFood(queueItem.foodItem.id)) },
+                onOpenActions = { onAction(RescueAction.OpenFoodActions(queueItem.foodItem.id)) },
+                onMarkConsumed = { onAction(RescueAction.MarkConsumed(queueItem.foodItem.id)) },
+            )
+        }
+    }
+    item { Spacer(modifier = Modifier.height(16.dp)) }
 }
 
 @Composable
@@ -384,6 +471,19 @@ private fun EmptyContent() {
             )
         }
     }
+}
+
+@Composable
+private fun AppSection.label(): String = when (this) {
+    AppSection.HOME -> stringResource(R.string.nav_home)
+    AppSection.REPORT -> stringResource(R.string.nav_report)
+    AppSection.SETTINGS -> stringResource(R.string.nav_settings)
+}
+
+private fun AppSection.icon() = when (this) {
+    AppSection.HOME -> Icons.Filled.Home
+    AppSection.REPORT -> Icons.AutoMirrored.Filled.List
+    AppSection.SETTINGS -> Icons.Filled.Settings
 }
 
 @Preview(showBackground = true, widthDp = 393, heightDp = 852)
