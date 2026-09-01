@@ -20,6 +20,7 @@ sealed interface RescueUiState {
         val editor: FoodEditorUiState? = null,
         val detail: FoodDetailUiState? = null,
         val intakeReview: IntakeReviewUiState? = null,
+        val showImportOptions: Boolean = false,
     ) : RescueUiState
 }
 
@@ -66,6 +67,9 @@ sealed interface RescueAction {
     data class DismissIntakeDraft(val draftId: String) : RescueAction
     data class ToggleIntakeCandidate(val candidateId: String, val selected: Boolean) : RescueAction
     data class SaveIntakeCandidates(val draftId: String) : RescueAction
+    data object OpenImportOptions : RescueAction
+    data object DismissImportOptions : RescueAction
+    data class StartManualFromIntake(val draftId: String) : RescueAction
     data object StartAddFood : RescueAction
     data class StartEditFood(val foodItemId: FoodItemId) : RescueAction
     data object DismissEditor : RescueAction

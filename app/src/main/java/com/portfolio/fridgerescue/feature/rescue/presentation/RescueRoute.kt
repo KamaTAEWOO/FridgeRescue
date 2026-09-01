@@ -15,6 +15,7 @@ import com.portfolio.fridgerescue.core.model.FoodActionType
 @Composable
 fun RescueRoute(
     viewModel: RescueViewModel = viewModel(factory = RescueViewModel.Factory),
+    onPickReceipt: () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -76,5 +77,6 @@ fun RescueRoute(
         uiState = uiState,
         snackbarHostState = snackbarHostState,
         onAction = viewModel::onAction,
+        onPickReceipt = onPickReceipt,
     )
 }

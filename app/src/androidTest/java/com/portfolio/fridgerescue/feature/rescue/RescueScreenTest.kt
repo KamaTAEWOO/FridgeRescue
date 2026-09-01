@@ -22,6 +22,7 @@ import com.portfolio.fridgerescue.core.model.IntakeCandidate
 import com.portfolio.fridgerescue.core.model.IntakeCandidateGroup
 import com.portfolio.fridgerescue.core.model.IntakeDraft
 import com.portfolio.fridgerescue.core.model.IntakeDraftStatus
+import com.portfolio.fridgerescue.core.model.IntakeErrorCode
 import com.portfolio.fridgerescue.feature.rescue.domain.GetRescueQueueUseCase
 import com.portfolio.fridgerescue.feature.rescue.domain.RescueUrgency
 import com.portfolio.fridgerescue.feature.rescue.presentation.RescueAction
@@ -210,6 +211,46 @@ class RescueScreenTest {
         }
         composeRule.onNodeWithText("두부").assertIsDisplayed()
         composeRule.onNodeWithText("시금치").assertIsDisplayed()
+    }
+
+    @Test
+    fun TC_INTAKE_012_import_options_open_manual_entry() {
+        val viewModel = RescueViewModel(
+            repository = InMemoryFoodRepository(),
+            clock = fixedClock(),
+        )
+        setRoute(viewModel)
+
+        composeRule.onNodeWithText("구매내역 가져오기").performClick()
+        composeRule.onNodeWithText("종이 영수증 사진 선택").assertIsDisplayed()
+        composeRule.onNodeWithText("직접 입력").performClick()
+
+        composeRule.onNodeWithText("새 식재료 추가").assertIsDisplayed()
+    }
+
+    @Test
+    fun TC_OCR_006_failed_analysis_keeps_direct_entry_fallback() {
+        val draft = IntakeDraft(
+            id = "failed-image",
+            contentType = IntakeContentType.IMAGE,
+            mimeType = "image/png",
+            textContent = null,
+            cachedFilePath = null,
+            status = IntakeDraftStatus.ERROR,
+            errorCode = IntakeErrorCode.SHARED_FILE_SIGNATURE_INVALID,
+            createdAt = Instant.parse("2026-09-01T00:00:00Z"),
+            updatedAt = Instant.parse("2026-09-01T00:00:00Z"),
+        )
+        val viewModel = RescueViewModel(
+            repository = InMemoryFoodRepository(),
+            intakeDraftRepository = InMemoryIntakeDraftRepository(initialDraft = draft),
+            clock = fixedClock(),
+        )
+        setRoute(viewModel)
+
+        composeRule.onNodeWithText("직접 입력").performClick()
+
+        composeRule.onNodeWithText("새 식재료 추가").assertIsDisplayed()
     }
 
     @Test

@@ -40,6 +40,7 @@ fun IntakeDraftSheet(
     onDismiss: () -> Unit,
     onCandidateSelected: (String, Boolean) -> Unit,
     onSave: () -> Unit,
+    onManualEntry: () -> Unit,
 ) {
     val draft = state.draft
     ModalBottomSheet(
@@ -110,6 +111,14 @@ fun IntakeDraftSheet(
                     text = stringResource(R.string.intake_no_candidates),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+            }
+
+            if (draft.status == IntakeDraftStatus.ERROR || state.candidates.isEmpty()) {
+                Button(
+                    onClick = onManualEntry,
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = !state.isSaving,
+                ) { Text(stringResource(R.string.import_manual)) }
             }
 
             OutlinedButton(

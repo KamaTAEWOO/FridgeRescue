@@ -42,6 +42,7 @@ import com.portfolio.fridgerescue.core.model.FoodStatus
 import com.portfolio.fridgerescue.core.model.StorageLocation
 import com.portfolio.fridgerescue.feature.rescue.components.FoodRescueCard
 import com.portfolio.fridgerescue.feature.intake.IntakeDraftSheet
+import com.portfolio.fridgerescue.feature.intake.IntakeOptionsSheet
 import com.portfolio.fridgerescue.feature.rescue.domain.GetRescueQueueUseCase
 import com.portfolio.fridgerescue.ui.theme.FridgeRescueTheme
 import java.time.LocalDate
@@ -51,6 +52,7 @@ fun RescueScreen(
     uiState: RescueUiState,
     snackbarHostState: SnackbarHostState,
     onAction: (RescueAction) -> Unit,
+    onPickReceipt: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -96,6 +98,20 @@ fun RescueScreen(
                 onAction(RescueAction.ToggleIntakeCandidate(id, selected))
             },
             onSave = { onAction(RescueAction.SaveIntakeCandidates(intakeReview.draft.id)) },
+            onManualEntry = {
+                onAction(RescueAction.StartManualFromIntake(intakeReview.draft.id))
+            },
+        )
+    }
+    val showImportOptions = (uiState as? RescueUiState.Content)?.showImportOptions == true
+    if (showImportOptions) {
+        IntakeOptionsSheet(
+            onDismiss = { onAction(RescueAction.DismissImportOptions) },
+            onPickReceipt = {
+                onAction(RescueAction.DismissImportOptions)
+                onPickReceipt()
+            },
+            onManualEntry = { onAction(RescueAction.StartAddFood) },
         )
     }
 }
@@ -129,7 +145,10 @@ private fun RescueContent(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item {
-            RescueHeader(onAddFood = { onAction(RescueAction.StartAddFood) })
+            RescueHeader(
+                onImport = { onAction(RescueAction.OpenImportOptions) },
+                onAddFood = { onAction(RescueAction.StartAddFood) },
+            )
         }
 
         item {
@@ -182,7 +201,7 @@ private fun RescueContent(
 }
 
 @Composable
-private fun RescueHeader(onAddFood: () -> Unit) {
+private fun RescueHeader(onImport: () -> Unit, onAddFood: () -> Unit) {
     Column {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -224,10 +243,22 @@ private fun RescueHeader(onAddFood: () -> Unit) {
             )
         }
         androidx.compose.material3.Button(
-            onClick = onAddFood,
+            onClick = onImport,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 16.dp),
+        ) {
+            Text(
+                text = stringResource(R.string.rescue_import),
+                modifier = Modifier.padding(vertical = 3.dp),
+                fontWeight = FontWeight.Bold,
+            )
+        }
+        androidx.compose.material3.OutlinedButton(
+            onClick = onAddFood,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp),
         ) {
             Text(
                 text = stringResource(R.string.rescue_add_food),

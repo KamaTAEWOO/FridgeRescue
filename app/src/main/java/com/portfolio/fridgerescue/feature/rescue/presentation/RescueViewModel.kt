@@ -47,6 +47,7 @@ class RescueViewModel(
     private val editorState = MutableStateFlow<FoodEditorUiState?>(null)
     private val detailSelection = MutableStateFlow<DetailSelection?>(null)
     private val savingIntakeDraftId = MutableStateFlow<String?>(null)
+    private val showImportOptions = MutableStateFlow(false)
 
     val events = eventChannel.receiveAsFlow()
 
@@ -89,11 +90,18 @@ class RescueViewModel(
         }
     } ?: flowOf(null)
 
-    val uiState = combine(repository.foodItems, editorState, detailState, intakeReview) {
+    val uiState = combine(
+        repository.foodItems,
+        editorState,
+        detailState,
+        intakeReview,
+        showImportOptions,
+    ) {
             foodItems,
             editor,
             detail,
             review,
+            importOptionsVisible,
         ->
         val queueItems = getRescueQueue(foodItems, LocalDate.now(clock))
         RescueUiState.Content(
@@ -110,6 +118,7 @@ class RescueViewModel(
             editor = editor,
             detail = detail,
             intakeReview = review,
+            showImportOptions = importOptionsVisible,
         )
     }
         .stateIn(
@@ -133,7 +142,13 @@ class RescueViewModel(
                 intakeDraftRepository?.updateCandidateSelected(action.candidateId, action.selected)
             }
             is RescueAction.SaveIntakeCandidates -> saveIntakeCandidates(action.draftId)
-            RescueAction.StartAddFood -> editorState.value = FoodEditorUiState()
+            RescueAction.OpenImportOptions -> showImportOptions.value = true
+            RescueAction.DismissImportOptions -> showImportOptions.value = false
+            is RescueAction.StartManualFromIntake -> startManualFromIntake(action.draftId)
+            RescueAction.StartAddFood -> {
+                showImportOptions.value = false
+                editorState.value = FoodEditorUiState()
+            }
             is RescueAction.StartEditFood -> startEdit(action.foodItemId)
             RescueAction.DismissEditor -> editorState.value = null
             is RescueAction.ChangeEditorName -> updateEditor { copy(name = action.value) }
@@ -254,6 +269,13 @@ class RescueViewModel(
 
     private fun dismissIntakeDraft(draftId: String) {
         viewModelScope.launch { intakeDraftRepository?.archive(draftId) }
+    }
+
+    private fun startManualFromIntake(draftId: String) {
+        viewModelScope.launch {
+            intakeDraftRepository?.archive(draftId)
+            editorState.value = FoodEditorUiState()
+        }
     }
 
     private fun saveIntakeCandidates(draftId: String) {
