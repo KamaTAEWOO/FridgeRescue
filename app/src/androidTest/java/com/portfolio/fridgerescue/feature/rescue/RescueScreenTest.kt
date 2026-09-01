@@ -199,7 +199,7 @@ class RescueScreenTest {
         setScreen(uiState = contentState(), selectedSection = AppSection.SETTINGS)
 
         composeRule.onNodeWithText("가족 공유").performScrollTo().assertIsDisplayed()
-        composeRule.onNodeWithText("서버 주소").assertIsDisplayed()
+        composeRule.onNodeWithText("서버 주소").performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithText("표시 이름").performScrollTo().assertIsDisplayed()
     }
 

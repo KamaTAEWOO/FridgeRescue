@@ -68,7 +68,7 @@
 
 ## 검증 근거
 
-- 기능 자동 테스트 90개: JVM 47개, Room·Intent·Compose 계측 43개
+- 기능 자동 테스트 97개: 앱·서버 JVM 50개, Room·Intent·Compose 계측 47개
 - API 26과 API 36 에뮬레이터에서 전체 계측 테스트 통과
 - TalkBack 실제 서비스 연결 후 클릭 요소 접근성 라벨 정적 감사 통과
 - 재부팅 후 WorkManager 재등록, 강제 Doze 지연, 절전 모드 실행 확인

@@ -71,9 +71,9 @@
 | Room 마이그레이션·Compose UI | `TC-DATA-017`, `TC-BARCODE-007`, `TC-INTAKE-013` | `DatabaseMigrationTest`, `RescueScreenTest` | `AUTOMATED` |
 | JVM·Room·Compose UI | `TC-PRIVACY-004`, `005` 전체 삭제 | `SharedIntakeCacheCleanerTest`, `DataDeletionManagerTest`, `RescueScreenTest` | `AUTOMATED` |
 
-- 자동 테스트: 90개
+- 자동 테스트: 97개
 - 최근 검증 환경: `FridgeRescue_API_36`, Android API 36
-- 최근 결과: JVM 47개 통과, Room·Intent·Compose 계측 43개 통과
+- 최근 결과: 앱·서버 JVM 50개 통과, Room·Intent·Compose 계측 47개 통과
 
 ## 3. 자동화 계층
 

@@ -26,5 +26,15 @@ jobs:
           java-version: 17
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
-      - name: Unit tests, lint, debug APK, and optimized release artifacts
-        run: ./gradlew testDebugUnitTest lintDebug lintRelease assembleDebug assembleRelease bundleRelease --stacktrace
+      - name: App and server tests, lint, benchmark compile, and release artifacts
+        run: >-
+          ./gradlew
+          :app:testDebugUnitTest
+          :server:test
+          :app:lintDebug
+          :app:lintRelease
+          :benchmark:assembleBenchmarkRelease
+          :app:assembleDebug
+          :app:assembleRelease
+          :app:bundleRelease
+          --stacktrace
