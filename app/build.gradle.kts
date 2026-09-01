@@ -14,6 +14,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
     alias(libs.plugins.androidx.room)
+    alias(libs.plugins.androidx.baselineprofile)
 }
 
 android {
@@ -45,6 +46,11 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
+        }
+        create("benchmark") {
+            initWith(getByName("release"))
+            signingConfig = signingConfigs.getByName("debug")
+            matchingFallbacks += "release"
         }
     }
 
@@ -96,4 +102,14 @@ dependencies {
 
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+
+    baselineProfile(project(":benchmark"))
+}
+
+baselineProfile {
+    mergeIntoMain = true
+    saveInSrc = true
+    filter {
+        include("com.portfolio.fridgerescue.**")
+    }
 }

@@ -8,6 +8,7 @@
 .externalNativeBuild
 .cxx
 app/build
+benchmark/build
 keystore.properties
 *.jks
 *.keystore

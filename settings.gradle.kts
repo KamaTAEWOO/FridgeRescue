@@ -15,4 +15,4 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "FridgeRescue"
-include(":app")
+include(":app", ":benchmark")
