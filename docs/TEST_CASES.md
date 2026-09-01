@@ -31,7 +31,19 @@
 | `P1` | 우회 가능하지만 주요 사용성이나 신뢰에 영향을 줌 |
 | `P2` | 완성도, 성능 최적화, 후속 범위 |
 
-현재 모든 케이스의 상태는 기능 구현 전이므로 `PLANNED`다.
+아래 자동화 현황에 포함되지 않은 케이스는 `PLANNED`다.
+
+### 현재 자동화 현황
+
+| 계층 | 케이스 | 테스트 코드 | 상태 |
+|---|---|---|---|
+| JVM 단위 | `TC-DATE-001`, `003`, `004`, `005`, `006`, `007`, `009` | `FoodItemTest`, `EstimateConsumeDateUseCaseTest`, `GetRescueQueueUseCaseTest` | `AUTOMATED` |
+| JVM 단위 | `TC-QUEUE-001`, `002`, `TC-QTY-001`, `002` | `FoodItemTest`, `GetRescueQueueUseCaseTest` | `AUTOMATED` |
+| Compose UI | `TC-UI-005`, `006`, `009` | `RescueScreenTest` | `AUTOMATED` |
+
+- 자동 테스트: 14개
+- 최근 검증 환경: `FridgeRescue_API_36`, Android API 36
+- 최근 결과: JVM 11개 통과, Compose UI 3개 통과
 
 ## 3. 자동화 계층
 

@@ -4,8 +4,11 @@ Kotlin과 Jetpack Compose로 제작할 Android 포트폴리오 프로젝트입�
 
 ## 현재 상태
 
-- Android 프로젝트와 Gradle 설정만 완료
-- 앱 기능 구현은 시작하지 않음
+- Milestone 1 — 로컬 구조 큐 개발 중
+- 도메인 모델과 임박도·개봉·고정 우선순위 규칙 구현
+- 오늘의 구조 Compose 홈 화면과 먹음·실행 취소 흐름 구현
+- 현재는 Room 도입 전이므로 교체 가능한 인메모리 저장소와 예시 데이터를 사용
+- JVM 단위 테스트 11개, Compose UI 테스트 3개 자동화
 - 패키지: `com.portfolio.fridgerescue`
 - 최소 지원 버전: Android 8.0 (API 26)
 - 컴파일/타깃 SDK: API 36
@@ -32,4 +35,4 @@ Kotlin과 Jetpack Compose로 제작할 Android 포트폴리오 프로젝트입�
 - [예외처리 기준](./docs/EDGE_CASES.md)
 - [테스트 케이스](./docs/TEST_CASES.md)
 
-제품 기획과 구현 기준을 먼저 확정하며, 기능 구현은 아직 시작하지 않았습니다.
+제품 기획과 구현 기준을 바탕으로 기능과 관련 테스트를 같은 작업 단위에서 개발합니다.
