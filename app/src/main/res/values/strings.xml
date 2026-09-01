@@ -73,4 +73,18 @@
     <string name="history_discarded">버림 처리했어요</string>
     <string name="history_undone">이전 작업을 취소했어요</string>
     <string name="history_reason_format">이유: %1$s</string>
+    <string name="intake_received_title">구매내역을 받았어요</string>
+    <string name="intake_received_description">%1$s 콘텐츠를 앱 전용 공간에 안전하게 복사했어요.</string>
+    <string name="intake_type_text">공유 텍스트</string>
+    <string name="intake_type_image">공유 이미지</string>
+    <string name="intake_type_pdf">공유 PDF</string>
+    <string name="intake_type_unknown">공유 콘텐츠</string>
+    <string name="intake_review_later">확인했어요</string>
+    <string name="intake_close">닫기</string>
+    <string name="intake_error_title">구매내역을 가져오지 못했어요</string>
+    <string name="intake_error_unsupported">이미지, PDF 또는 텍스트로 다시 공유해주세요.</string>
+    <string name="intake_error_uri">구매내역을 다시 공유해주세요. 파일을 읽을 수 없어요.</string>
+    <string name="intake_error_large">파일이 너무 커요. 필요한 페이지만 공유해주세요.</string>
+    <string name="intake_error_signature">파일 형식이 표시된 형식과 달라요. 다시 공유해주세요.</string>
+    <string name="intake_error_empty_text">공유된 내용이 비어 있어요. 구매내역을 다시 선택해주세요.</string>
 </resources>

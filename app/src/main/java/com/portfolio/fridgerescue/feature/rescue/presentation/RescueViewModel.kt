@@ -7,6 +7,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.portfolio.fridgerescue.FridgeRescueApplication
 import com.portfolio.fridgerescue.core.data.repository.FoodRepository
+import com.portfolio.fridgerescue.core.data.repository.IntakeDraftRepository
 import com.portfolio.fridgerescue.core.model.FoodActionRequest
 import com.portfolio.fridgerescue.core.model.FoodActionType
 import com.portfolio.fridgerescue.core.model.FoodItemId
@@ -34,6 +35,7 @@ import kotlinx.coroutines.launch
 
 class RescueViewModel(
     private val repository: FoodRepository,
+    private val intakeDraftRepository: IntakeDraftRepository? = null,
     private val clock: Clock = Clock.systemDefaultZone(),
     private val getRescueQueue: GetRescueQueueUseCase = GetRescueQueueUseCase(),
     private val saveFoodItem: SaveFoodItemUseCase = SaveFoodItemUseCase(repository),
@@ -65,10 +67,13 @@ class RescueViewModel(
         }
     }
 
-    val uiState = combine(repository.foodItems, editorState, detailState) {
+    private val intakeDraft = intakeDraftRepository?.latestActiveDraft ?: flowOf(null)
+
+    val uiState = combine(repository.foodItems, editorState, detailState, intakeDraft) {
             foodItems,
             editor,
             detail,
+            draft,
         ->
         val queueItems = getRescueQueue(foodItems, LocalDate.now(clock))
         RescueUiState.Content(
@@ -84,6 +89,7 @@ class RescueViewModel(
             },
             editor = editor,
             detail = detail,
+            intakeDraft = draft,
         )
     }
         .stateIn(
@@ -102,6 +108,7 @@ class RescueViewModel(
             is RescueAction.ChangeDiscardReason -> detailSelection.value = detailSelection.value
                 ?.copy(discardReason = action.value)
             is RescueAction.UndoMutation -> undoMutation(action.eventId)
+            is RescueAction.DismissIntakeDraft -> dismissIntakeDraft(action.draftId)
             RescueAction.StartAddFood -> editorState.value = FoodEditorUiState()
             is RescueAction.StartEditFood -> startEdit(action.foodItemId)
             RescueAction.DismissEditor -> editorState.value = null
@@ -221,11 +228,18 @@ class RescueViewModel(
         }
     }
 
+    private fun dismissIntakeDraft(draftId: String) {
+        viewModelScope.launch { intakeDraftRepository?.archive(draftId) }
+    }
+
     companion object {
         val Factory = viewModelFactory {
             initializer {
                 val application = checkNotNull(this[APPLICATION_KEY]) as FridgeRescueApplication
-                RescueViewModel(repository = application.container.foodRepository)
+                RescueViewModel(
+                    repository = application.container.foodRepository,
+                    intakeDraftRepository = application.container.intakeDraftRepository,
+                )
             }
         }
     }

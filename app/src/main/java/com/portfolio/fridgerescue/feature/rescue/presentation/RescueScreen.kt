@@ -41,6 +41,7 @@ import com.portfolio.fridgerescue.core.model.FoodItemId
 import com.portfolio.fridgerescue.core.model.FoodStatus
 import com.portfolio.fridgerescue.core.model.StorageLocation
 import com.portfolio.fridgerescue.feature.rescue.components.FoodRescueCard
+import com.portfolio.fridgerescue.feature.intake.IntakeDraftSheet
 import com.portfolio.fridgerescue.feature.rescue.domain.GetRescueQueueUseCase
 import com.portfolio.fridgerescue.ui.theme.FridgeRescueTheme
 import java.time.LocalDate
@@ -83,6 +84,13 @@ fun RescueScreen(
     val detail = (uiState as? RescueUiState.Content)?.detail
     if (detail != null) {
         FoodDetailSheet(state = detail, onAction = onAction)
+    }
+    val intakeDraft = (uiState as? RescueUiState.Content)?.intakeDraft
+    if (intakeDraft != null) {
+        IntakeDraftSheet(
+            draft = intakeDraft,
+            onDismiss = { onAction(RescueAction.DismissIntakeDraft(intakeDraft.id)) },
+        )
     }
 }
 

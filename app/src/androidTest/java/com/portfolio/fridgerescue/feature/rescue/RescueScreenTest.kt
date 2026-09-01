@@ -16,6 +16,9 @@ import com.portfolio.fridgerescue.core.model.FoodDateSource
 import com.portfolio.fridgerescue.core.model.FoodItem
 import com.portfolio.fridgerescue.core.model.FoodItemId
 import com.portfolio.fridgerescue.core.model.StorageLocation
+import com.portfolio.fridgerescue.core.model.IntakeContentType
+import com.portfolio.fridgerescue.core.model.IntakeDraft
+import com.portfolio.fridgerescue.core.model.IntakeDraftStatus
 import com.portfolio.fridgerescue.feature.rescue.domain.GetRescueQueueUseCase
 import com.portfolio.fridgerescue.feature.rescue.domain.RescueUrgency
 import com.portfolio.fridgerescue.feature.rescue.presentation.RescueAction
@@ -26,6 +29,7 @@ import com.portfolio.fridgerescue.feature.rescue.presentation.RescueUiState
 import com.portfolio.fridgerescue.feature.rescue.presentation.RescueViewModel
 import com.portfolio.fridgerescue.ui.theme.FridgeRescueTheme
 import java.time.Clock
+import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
 import kotlinx.coroutines.runBlocking
@@ -117,6 +121,26 @@ class RescueScreenTest {
         composeRule.onNodeWithText("지금 구조할 재료가 없어요").assertIsDisplayed()
         composeRule.onNodeWithText("재료 추가를 눌러 첫 식재료를 담아보세요.")
             .assertIsDisplayed()
+    }
+
+    @Test
+    fun TC_INTAKE_001_shared_text_draft_is_shown_for_review() {
+        val draft = IntakeDraft(
+            id = "shared-text",
+            contentType = IntakeContentType.TEXT,
+            mimeType = "text/plain",
+            textContent = "두부 2개\n시금치 1봉",
+            cachedFilePath = null,
+            status = IntakeDraftStatus.READY,
+            errorCode = null,
+            createdAt = Instant.parse("2026-09-01T00:00:00Z"),
+            updatedAt = Instant.parse("2026-09-01T00:00:00Z"),
+        )
+
+        setScreen(contentState().copy(intakeDraft = draft))
+
+        composeRule.onNodeWithText("구매내역을 받았어요").assertIsDisplayed()
+        composeRule.onNodeWithText("두부 2개\n시금치 1봉").assertIsDisplayed()
     }
 
     @Test

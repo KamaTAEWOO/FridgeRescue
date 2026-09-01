@@ -44,6 +44,28 @@ class DatabaseMigrationTest {
         }
     }
 
+    @Test
+    fun TC_DATA_013_migration_2_to_3_preserves_food_and_adds_intake_drafts() {
+        openHelper(version = 2).use { helper ->
+            helper.writableDatabase.execSQL(
+                """
+                INSERT INTO food_items (
+                    id, name, quantity, storage_location,
+                    manufacturer_displayed_date, app_estimated_date, user_confirmed_date,
+                    is_opened, is_pinned, status, updated_at_epoch_millis
+                ) VALUES ('v2-food', '우유', 1, 'REFRIGERATED', NULL, NULL, NULL,
+                    0, 0, 'NEEDS_REVIEW', 0)
+                """.trimIndent(),
+            )
+        }
+
+        openHelper(version = 3).use { helper ->
+            val migrated = helper.writableDatabase
+            assertEquals(1, migrated.count("SELECT * FROM food_items WHERE id = 'v2-food'"))
+            assertEquals(0, migrated.count("SELECT * FROM intake_drafts"))
+        }
+    }
+
     private fun openHelper(version: Int): SupportSQLiteOpenHelper =
         FrameworkSQLiteOpenHelperFactory().create(
             SupportSQLiteOpenHelper.Configuration.builder(context)
@@ -59,7 +81,8 @@ class DatabaseMigrationTest {
                             oldVersion: Int,
                             newVersion: Int,
                         ) {
-                            FridgeRescueDatabase.MIGRATION_1_2.migrate(db)
+                            if (oldVersion < 2) FridgeRescueDatabase.MIGRATION_1_2.migrate(db)
+                            if (oldVersion < 3) FridgeRescueDatabase.MIGRATION_2_3.migrate(db)
                         }
                     },
                 )

@@ -4,6 +4,7 @@ import com.portfolio.fridgerescue.core.model.FoodActionType
 import com.portfolio.fridgerescue.core.model.FoodEvent
 import com.portfolio.fridgerescue.core.model.FoodItem
 import com.portfolio.fridgerescue.core.model.FoodItemId
+import com.portfolio.fridgerescue.core.model.IntakeDraft
 import com.portfolio.fridgerescue.core.model.StorageLocation
 import com.portfolio.fridgerescue.feature.rescue.domain.FoodItemDraftError
 import com.portfolio.fridgerescue.feature.rescue.domain.RescueQueueItem
@@ -17,6 +18,7 @@ sealed interface RescueUiState {
         val needsReviewCount: Int,
         val editor: FoodEditorUiState? = null,
         val detail: FoodDetailUiState? = null,
+        val intakeDraft: IntakeDraft? = null,
     ) : RescueUiState
 }
 
@@ -52,6 +54,7 @@ sealed interface RescueAction {
     ) : RescueAction
     data class ChangeDiscardReason(val value: String) : RescueAction
     data class UndoMutation(val eventId: String) : RescueAction
+    data class DismissIntakeDraft(val draftId: String) : RescueAction
     data object StartAddFood : RescueAction
     data class StartEditFood(val foodItemId: FoodItemId) : RescueAction
     data object DismissEditor : RescueAction
