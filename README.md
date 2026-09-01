@@ -7,8 +7,9 @@ Kotlin과 Jetpack Compose로 제작할 Android 포트폴리오 프로젝트입�
 - Milestone 1 — 로컬 구조 큐 개발 중
 - 도메인 모델과 임박도·개봉·고정 우선순위 규칙 구현
 - 오늘의 구조 Compose 홈 화면과 먹음·실행 취소 흐름 구현
-- 현재는 Room 도입 전이므로 교체 가능한 인메모리 저장소와 예시 데이터를 사용
-- JVM 단위 테스트 11개, Compose UI 테스트 3개 자동화
+- Room 기반 영구 저장과 식재료 추가·수정 흐름 구현
+- Room 스키마 v1을 저장해 후속 마이그레이션 검증 기반 마련
+- JVM 단위 테스트 17개, Room DAO 테스트 3개, Compose UI 테스트 5개 자동화
 - 패키지: `com.portfolio.fridgerescue`
 - 최소 지원 버전: Android 8.0 (API 26)
 - 컴파일/타깃 SDK: API 36

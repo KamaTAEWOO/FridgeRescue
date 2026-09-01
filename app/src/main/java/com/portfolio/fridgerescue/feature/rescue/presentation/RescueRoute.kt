@@ -13,14 +13,16 @@ import com.portfolio.fridgerescue.R
 
 @Composable
 fun RescueRoute(
-    viewModel: RescueViewModel = viewModel(),
+    viewModel: RescueViewModel = viewModel(factory = RescueViewModel.Factory),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val consumedMessage = stringResource(R.string.rescue_consumed_message)
     val undoLabel = stringResource(R.string.rescue_undo)
+    val addedMessage = stringResource(R.string.food_added_message)
+    val updatedMessage = stringResource(R.string.food_updated_message)
 
-    LaunchedEffect(viewModel, consumedMessage, undoLabel) {
+    LaunchedEffect(viewModel, consumedMessage, undoLabel, addedMessage, updatedMessage) {
         viewModel.events.collect { event ->
             when (event) {
                 is RescueEvent.ShowConsumedUndo -> {
@@ -32,6 +34,15 @@ fun RescueRoute(
                     if (result == SnackbarResult.ActionPerformed) {
                         viewModel.onAction(RescueAction.UndoConsumed(event.foodItemId))
                     }
+                }
+                is RescueEvent.ShowFoodSaved -> {
+                    snackbarHostState.showSnackbar(
+                        message = if (event.isNew) {
+                            addedMessage.format(event.foodName)
+                        } else {
+                            updatedMessage.format(event.foodName)
+                        },
+                    )
                 }
             }
         }

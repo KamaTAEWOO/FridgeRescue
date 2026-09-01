@@ -4,9 +4,13 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import com.portfolio.fridgerescue.core.data.datasource.local.InMemoryFoodRepository
+import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performTextReplacement
+import com.portfolio.fridgerescue.core.testing.InMemoryFoodRepository
 import com.portfolio.fridgerescue.core.model.FoodDate
 import com.portfolio.fridgerescue.core.model.FoodDateSource
 import com.portfolio.fridgerescue.core.model.FoodItem
@@ -15,6 +19,7 @@ import com.portfolio.fridgerescue.core.model.StorageLocation
 import com.portfolio.fridgerescue.feature.rescue.domain.GetRescueQueueUseCase
 import com.portfolio.fridgerescue.feature.rescue.domain.RescueUrgency
 import com.portfolio.fridgerescue.feature.rescue.presentation.RescueAction
+import com.portfolio.fridgerescue.feature.rescue.presentation.FoodEditorTestTags
 import com.portfolio.fridgerescue.feature.rescue.presentation.RescueRoute
 import com.portfolio.fridgerescue.feature.rescue.presentation.RescueScreen
 import com.portfolio.fridgerescue.feature.rescue.presentation.RescueUiState
@@ -23,6 +28,8 @@ import com.portfolio.fridgerescue.ui.theme.FridgeRescueTheme
 import java.time.Clock
 import java.time.LocalDate
 import java.time.ZoneOffset
+import kotlinx.coroutines.runBlocking
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 
@@ -87,8 +94,56 @@ class RescueScreenTest {
         setScreen(contentState())
 
         composeRule.onNodeWithText("지금 구조할 재료가 없어요").assertIsDisplayed()
-        composeRule.onNodeWithText("구매내역 공유 기능은 다음 단계에서 연결할게요.")
+        composeRule.onNodeWithText("재료 추가를 눌러 첫 식재료를 담아보세요.")
             .assertIsDisplayed()
+    }
+
+    @Test
+    fun TC_EDITOR_007_add_food_updates_queue() {
+        val repository = InMemoryFoodRepository()
+        val viewModel = RescueViewModel(
+            repository = repository,
+            clock = fixedClock(),
+        )
+        setRoute(viewModel)
+
+        composeRule.onNodeWithText("재료 추가").performClick()
+        composeRule.onNodeWithTag(FoodEditorTestTags.NAME).performTextInput("두부")
+        composeRule.onNodeWithTag(FoodEditorTestTags.QUANTITY).performTextInput("2")
+        composeRule.onNodeWithTag(FoodEditorTestTags.DATE).performTextInput("2026-09-03")
+        composeRule.onNodeWithTag(FoodEditorTestTags.storage(StorageLocation.FROZEN))
+            .performClick()
+        composeRule.onNodeWithTag(FoodEditorTestTags.SAVE).performScrollTo().performClick()
+
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule.onAllNodesWithText("두부").fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithText("확정한 날짜 · 9월 3일").assertIsDisplayed()
+        composeRule.onNodeWithText("냉동").assertIsDisplayed()
+    }
+
+    @Test
+    fun TC_EDITOR_008_edit_food_preserves_id_and_updates_content() {
+        val original = foodItem(
+            id = "tofu",
+            name = "두부",
+            date = FoodDate(today.plusDays(1), FoodDateSource.MANUFACTURER_DISPLAYED),
+        )
+        val repository = InMemoryFoodRepository(listOf(original))
+        val viewModel = RescueViewModel(
+            repository = repository,
+            clock = fixedClock(),
+        )
+        setRoute(viewModel)
+
+        composeRule.onNodeWithText("수정").performClick()
+        composeRule.onNodeWithTag(FoodEditorTestTags.NAME).performTextReplacement("부침용 두부")
+        composeRule.onNodeWithTag(FoodEditorTestTags.SAVE).performScrollTo().performClick()
+
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule.onAllNodesWithText("부침용 두부").fetchSemanticsNodes().isNotEmpty()
+        }
+        assertEquals(original.id, runBlocking { repository.findById(original.id) }?.id)
     }
 
     private fun setScreen(
@@ -105,6 +160,19 @@ class RescueScreenTest {
             }
         }
     }
+
+    private fun setRoute(viewModel: RescueViewModel) {
+        composeRule.setContent {
+            FridgeRescueTheme {
+                RescueRoute(viewModel = viewModel)
+            }
+        }
+    }
+
+    private fun fixedClock(): Clock = Clock.fixed(
+        today.atStartOfDay().toInstant(ZoneOffset.UTC),
+        ZoneOffset.UTC,
+    )
 
     private fun contentState(vararg items: FoodItem): RescueUiState.Content {
         val queueItems = GetRescueQueueUseCase()(items.toList(), today)

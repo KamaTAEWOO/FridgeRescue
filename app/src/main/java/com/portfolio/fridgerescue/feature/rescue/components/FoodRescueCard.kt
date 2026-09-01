@@ -11,6 +11,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,6 +29,7 @@ import com.portfolio.fridgerescue.feature.rescue.domain.RescueUrgency
 @Composable
 fun FoodRescueCard(
     queueItem: RescueQueueItem,
+    onEdit: () -> Unit,
     onMarkConsumed: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -83,18 +85,33 @@ fun FoodRescueCard(
                 }
             }
 
-            Button(
-                onClick = onMarkConsumed,
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                ),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Text(
-                    text = stringResource(R.string.rescue_mark_consumed),
-                    modifier = Modifier.padding(vertical = 3.dp),
-                    fontWeight = FontWeight.Bold,
-                )
+                OutlinedButton(
+                    onClick = onEdit,
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Text(
+                        text = stringResource(R.string.rescue_edit_food),
+                        modifier = Modifier.padding(vertical = 3.dp),
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+                Button(
+                    onClick = onMarkConsumed,
+                    modifier = Modifier.weight(2f),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                    ),
+                ) {
+                    Text(
+                        text = stringResource(R.string.rescue_mark_consumed),
+                        modifier = Modifier.padding(vertical = 3.dp),
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
             }
         }
     }

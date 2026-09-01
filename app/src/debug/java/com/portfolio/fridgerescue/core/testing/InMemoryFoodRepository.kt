@@ -1,4 +1,4 @@
-package com.portfolio.fridgerescue.core.data.datasource.local
+package com.portfolio.fridgerescue.core.testing
 
 import com.portfolio.fridgerescue.core.data.repository.FoodRepository
 import com.portfolio.fridgerescue.core.model.FoodItem

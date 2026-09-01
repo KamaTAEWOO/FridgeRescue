@@ -111,7 +111,7 @@ feature/intake/
 | UI | Compose, Material 3 | 설정 완료 |
 | 상태 | Lifecycle ViewModel, StateFlow | 첫 feature |
 | 내비게이션 | Navigation 3 또는 현재 안정 Compose Navigation | 화면 2개 이상 |
-| DB | Room, KSP | 첫 저장 기능 |
+| DB | Room 2.8.4, KSP | 도입 완료 — 스키마 v1 |
 | 설정 | Preferences DataStore | 알림 설정 |
 | DI | Hilt | Repository와 Worker 연결 시점 |
 | 백그라운드 | WorkManager | 임박 알림 |

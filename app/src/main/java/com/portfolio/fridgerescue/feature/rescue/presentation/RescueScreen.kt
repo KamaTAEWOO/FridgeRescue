@@ -72,6 +72,14 @@ fun RescueScreen(
             }
         }
     }
+
+    val editor = (uiState as? RescueUiState.Content)?.editor
+    if (editor != null) {
+        FoodEditorSheet(
+            state = editor,
+            onAction = onAction,
+        )
+    }
 }
 
 @Composable
@@ -103,7 +111,7 @@ private fun RescueContent(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item {
-            RescueHeader()
+            RescueHeader(onAddFood = { onAction(RescueAction.StartAddFood) })
         }
 
         item {
@@ -138,6 +146,9 @@ private fun RescueContent(
             ) { queueItem ->
                 FoodRescueCard(
                     queueItem = queueItem,
+                    onEdit = {
+                        onAction(RescueAction.StartEditFood(queueItem.foodItem.id))
+                    },
                     onMarkConsumed = {
                         onAction(RescueAction.MarkConsumed(queueItem.foodItem.id))
                     },
@@ -150,7 +161,7 @@ private fun RescueContent(
 }
 
 @Composable
-private fun RescueHeader() {
+private fun RescueHeader(onAddFood: () -> Unit) {
     Column {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -185,10 +196,22 @@ private fun RescueHeader() {
             shape = RoundedCornerShape(999.dp),
         ) {
             Text(
-                text = stringResource(R.string.rescue_demo_badge),
+                text = stringResource(R.string.rescue_storage_badge),
                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        androidx.compose.material3.Button(
+            onClick = onAddFood,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp),
+        ) {
+            Text(
+                text = stringResource(R.string.rescue_add_food),
+                modifier = Modifier.padding(vertical = 3.dp),
+                fontWeight = FontWeight.Bold,
             )
         }
     }
