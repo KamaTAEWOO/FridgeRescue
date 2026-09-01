@@ -19,6 +19,8 @@ import androidx.work.WorkerParameters
 import com.portfolio.fridgerescue.FridgeRescueApplication
 import com.portfolio.fridgerescue.MainActivity
 import com.portfolio.fridgerescue.R
+import com.portfolio.fridgerescue.feature.intake.SharedIntakeCacheCleaner
+import java.time.Instant
 import java.time.LocalDate
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.flow.first
@@ -28,6 +30,7 @@ class ExpiryNotificationWorker(
     params: WorkerParameters,
 ) : CoroutineWorker(appContext, params) {
     override suspend fun doWork(): Result {
+        SharedIntakeCacheCleaner.clean(applicationContext.cacheDir, Instant.now())
         val notificationManager = NotificationManagerCompat.from(applicationContext)
         if (!notificationManager.areNotificationsEnabled()) return Result.success()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&

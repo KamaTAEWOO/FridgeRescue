@@ -46,7 +46,7 @@
 | Room 트랜잭션 | `TC-ACTION-001`, `004`, `009` | `FoodItemDaoTest` | `AUTOMATED` |
 | Room 마이그레이션 | `TC-DATA-008` | `DatabaseMigrationTest` | `AUTOMATED` |
 | Compose UI | `TC-ACTION-010` | `RescueScreenTest` | `AUTOMATED` |
-| Intent·Room | `TC-INTAKE-001~005`, `007~009` | `SharedContentReceiverTest` | `AUTOMATED` |
+| Intent·Room | `TC-INTAKE-001~009`, `TC-OCR-000` | `SharedContentReceiverTest` | `AUTOMATED` |
 | Room 마이그레이션 | `TC-DATA-013` | `DatabaseMigrationTest` | `AUTOMATED` |
 | Compose UI | `TC-INTAKE-001` 공유 초안 표시 | `RescueScreenTest` | `AUTOMATED` |
 | JVM 단위 | `TC-INTAKE-011`, `TC-FILTER-001`, `TC-OCR-002`, `TC-INTAKE-014` | `PurchaseLineParserTest` | `AUTOMATED` |
@@ -54,14 +54,16 @@
 | Room 마이그레이션·트랜잭션 | `TC-DATA-014`, `015` | `DatabaseMigrationTest`, `FoodItemDaoTest` | `AUTOMATED` |
 | Compose UI | `TC-UI-001`, `AT-001` | `RescueScreenTest` | `AUTOMATED` |
 | Compose UI | `TC-INTAKE-012`, `TC-OCR-006` | `RescueScreenTest` | `AUTOMATED` |
+| Compose UI | `TC-OCR-005` | `RescueScreenTest` | `AUTOMATED` |
 | JVM 단위 | `TC-NOTIFY-001`, `TC-ACTION-006`, `TC-DATE-003` | `GetNotificationCandidatesUseCaseTest` | `AUTOMATED` |
 | Compose UI | `TC-NOTIFY-003` | `RescueScreenTest` | `AUTOMATED` |
 | JVM 단위 | `TC-REPORT-001~003` | `GetReportMetricsUseCaseTest` | `AUTOMATED` |
 | Compose UI | `TC-REPORT-004`, `TC-SETTINGS-001` | `RescueScreenTest` | `AUTOMATED` |
+| JVM 단위 | `TC-PRIVACY-003` | `SharedIntakeCacheCleanerTest` | `AUTOMATED` |
 
-- 자동 테스트: 61개
+- 자동 테스트: 65개
 - 최근 검증 환경: `FridgeRescue_API_36`, Android API 36
-- 최근 결과: JVM 29개 통과, Room·Intent·Compose 계측 32개 통과
+- 최근 결과: JVM 30개 통과, Room·Intent·Compose 계측 35개 통과
 
 ## 3. 자동화 계층
 

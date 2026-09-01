@@ -78,6 +78,7 @@ class SharedContentReceiverTest {
         assertEquals(IntakeDraftStatus.READY, draft.status)
         assertTrue(cached.exists())
         assertNotEquals(source.absolutePath, cached.absolutePath)
+        assertEquals("두부", repository.candidates(draft.id).single().normalizedName)
     }
 
     @Test
@@ -90,6 +91,7 @@ class SharedContentReceiverTest {
         val draft = repository.latestActiveDraft.first()!!
         assertEquals(IntakeContentType.PDF, draft.contentType)
         assertEquals(IntakeDraftStatus.READY, draft.status)
+        assertEquals("시금치", repository.candidates(draft.id).single().normalizedName)
     }
 
     @Test
@@ -162,11 +164,45 @@ class SharedContentReceiverTest {
         assertEquals(IntakeErrorCode.SHARED_FILE_SIGNATURE_INVALID, draft.errorCode)
     }
 
-    private fun receiver() = SharedContentReceiver(
+    @Test
+    fun TC_INTAKE_006_repeated_share_marks_candidates_for_review() = runBlocking {
+        val shared = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, "두부 2개\n시금치 1봉")
+        }
+        receiver().receive(shared)
+        receiver().receive(shared)
+
+        val draft = repository.latestActiveDraft.first()!!
+        val candidates = repository.candidates(draft.id)
+        assertTrue(candidates.none { it.isSelected })
+        assertTrue(candidates.all { it.reason == "같은 구매내역을 이미 불러왔어요" })
+    }
+
+    @Test
+    fun TC_OCR_000_empty_recognition_has_manual_entry_error() = runBlocking {
+        val source = File(context.cacheDir, "empty-receipt.png").apply {
+            writeBytes(byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47, 1, 2, 3))
+        }
+        receiver(
+            extractor = IntakeTextExtractor { _, _ -> TextExtractionResult("") },
+        ).receive(fileIntent("image/png", source))
+
+        val draft = repository.latestActiveDraft.first()!!
+        assertEquals(IntakeDraftStatus.ERROR, draft.status)
+        assertEquals(IntakeErrorCode.OCR_NO_ITEMS, draft.errorCode)
+    }
+
+    private fun receiver(
+        extractor: IntakeTextExtractor = IntakeTextExtractor { _, isPdf ->
+            TextExtractionResult(if (isPdf) "시금치 1봉" else "두부 2개")
+        },
+    ) = SharedContentReceiver(
         context = context,
         repository = repository,
         clock = fixedClock(),
         idFactory = { "draft-${++nextId}" },
+        textExtractor = extractor,
     )
 
     private fun fileIntent(mimeType: String, file: File) = Intent(Intent.ACTION_SEND).apply {

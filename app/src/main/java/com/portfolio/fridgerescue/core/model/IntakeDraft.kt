@@ -3,7 +3,7 @@ package com.portfolio.fridgerescue.core.model
 import java.time.Instant
 
 enum class IntakeContentType { TEXT, IMAGE, PDF }
-enum class IntakeDraftStatus { READY, ERROR, ARCHIVED }
+enum class IntakeDraftStatus { PROCESSING, READY, ERROR, ARCHIVED }
 
 data class IntakeDraft(
     val id: String,
@@ -24,4 +24,7 @@ object IntakeErrorCode {
     const val SHARED_FILE_SIGNATURE_INVALID = "SHARED_FILE_SIGNATURE_INVALID"
     const val SHARED_TEXT_EMPTY = "SHARED_TEXT_EMPTY"
     const val SHARE_MULTIPLE_UNSUPPORTED = "SHARE_MULTIPLE_UNSUPPORTED"
+    const val OCR_NO_ITEMS = "OCR_NO_ITEMS"
+    const val OCR_PROCESSING_FAILED = "OCR_PROCESSING_FAILED"
+    const val OCR_PARTIAL = "OCR_PARTIAL"
 }

@@ -10,6 +10,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -56,22 +57,35 @@ fun IntakeDraftSheet(
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             Text(
-                text = if (draft.status == IntakeDraftStatus.ERROR) {
-                    stringResource(R.string.intake_error_title)
-                } else {
-                    stringResource(R.string.intake_received_title)
+                text = when (draft.status) {
+                    IntakeDraftStatus.PROCESSING -> stringResource(R.string.intake_processing_title)
+                    IntakeDraftStatus.ERROR -> stringResource(R.string.intake_error_title)
+                    else -> stringResource(R.string.intake_received_title)
                 },
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
             )
             Text(
-                text = if (draft.status == IntakeDraftStatus.ERROR) {
-                    draft.errorMessage()
-                } else {
-                    stringResource(R.string.intake_received_description, draft.typeLabel())
+                text = when (draft.status) {
+                    IntakeDraftStatus.PROCESSING -> stringResource(R.string.intake_processing_description)
+                    IntakeDraftStatus.ERROR -> draft.errorMessage()
+                    else -> stringResource(R.string.intake_received_description, draft.typeLabel())
                 },
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+
+            if (draft.status == IntakeDraftStatus.PROCESSING) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
+            }
+
+            if (draft.status == IntakeDraftStatus.READY &&
+                draft.errorCode == IntakeErrorCode.OCR_PARTIAL
+            ) {
+                Text(
+                    text = stringResource(R.string.intake_ocr_partial),
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            }
 
             if (draft.status == IntakeDraftStatus.READY && state.candidates.isNotEmpty()) {
                 CandidateGroup(
@@ -113,7 +127,9 @@ fun IntakeDraftSheet(
                 )
             }
 
-            if (draft.status == IntakeDraftStatus.ERROR || state.candidates.isEmpty()) {
+            if (draft.status == IntakeDraftStatus.ERROR ||
+                (draft.status == IntakeDraftStatus.READY && state.candidates.isEmpty())
+            ) {
                 Button(
                     onClick = onManualEntry,
                     modifier = Modifier.fillMaxWidth(),
@@ -219,6 +235,8 @@ private fun IntakeDraft.errorMessage(): String = stringResource(
         IntakeErrorCode.SHARED_FILE_TOO_LARGE -> R.string.intake_error_large
         IntakeErrorCode.SHARED_FILE_SIGNATURE_INVALID -> R.string.intake_error_signature
         IntakeErrorCode.SHARED_TEXT_EMPTY -> R.string.intake_error_empty_text
+        IntakeErrorCode.OCR_NO_ITEMS -> R.string.intake_error_ocr_no_items
+        IntakeErrorCode.OCR_PROCESSING_FAILED -> R.string.intake_error_ocr_failed
         else -> R.string.intake_error_unsupported
     },
 )

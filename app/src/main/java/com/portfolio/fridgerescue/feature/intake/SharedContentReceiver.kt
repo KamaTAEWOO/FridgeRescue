@@ -16,6 +16,7 @@ import java.time.Clock
 import java.time.Instant
 import java.util.UUID
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 
 class SharedContentReceiver(
@@ -24,11 +25,13 @@ class SharedContentReceiver(
     private val clock: Clock = Clock.systemUTC(),
     private val idFactory: () -> String = { UUID.randomUUID().toString() },
     private val parser: PurchaseLineParser = PurchaseLineParser(),
+    private val textExtractor: IntakeTextExtractor = MlKitIntakeTextExtractor(),
 ) {
     suspend fun receive(intent: Intent): String? = withContext(Dispatchers.IO) {
         if (intent.action != Intent.ACTION_SEND && intent.action != Intent.ACTION_SEND_MULTIPLE) {
             return@withContext null
         }
+        val previousDraft = repository.latestActiveDraft.first()
         val draftId = idFactory()
         val now = Instant.now(clock)
         val mimeType = intent.type?.lowercase()
@@ -59,14 +62,69 @@ class SharedContentReceiver(
             else -> receiveFile(intent, draftId, mimeType, contentType, now)
         }
         repository.save(draft)
-        if (draft.status == IntakeDraftStatus.READY && draft.contentType == IntakeContentType.TEXT) {
-            repository.replaceCandidates(
-                draftId = draftId,
-                candidates = parser.parse(draftId, draft.textContent.orEmpty()),
-            )
+        when (draft.status) {
+            IntakeDraftStatus.PROCESSING -> processFileDraft(draft, previousDraft)
+            IntakeDraftStatus.READY -> saveParsedCandidates(draft, previousDraft)
+            IntakeDraftStatus.ERROR, IntakeDraftStatus.ARCHIVED -> Unit
         }
         draftId
     }
+
+    private suspend fun processFileDraft(draft: IntakeDraft, previousDraft: IntakeDraft?) {
+        val file = draft.cachedFilePath?.let(::File)
+        val extraction = file?.let { cachedFile ->
+            runCatching {
+                textExtractor.extract(
+                    file = cachedFile,
+                    isPdf = draft.contentType == IntakeContentType.PDF,
+                )
+            }
+        }
+        val result = extraction?.getOrNull()
+        val processed = when {
+            extraction == null || extraction.isFailure -> draft.copy(
+                status = IntakeDraftStatus.ERROR,
+                errorCode = IntakeErrorCode.OCR_PROCESSING_FAILED,
+                updatedAt = Instant.now(clock),
+            )
+            result == null || result.text.isBlank() -> draft.copy(
+                status = IntakeDraftStatus.ERROR,
+                errorCode = IntakeErrorCode.OCR_NO_ITEMS,
+                updatedAt = Instant.now(clock),
+            )
+            else -> draft.copy(
+                textContent = result.text,
+                status = IntakeDraftStatus.READY,
+                errorCode = if (result.isPartial) IntakeErrorCode.OCR_PARTIAL else null,
+                updatedAt = Instant.now(clock),
+            )
+        }
+        repository.save(processed)
+        if (processed.status == IntakeDraftStatus.READY) {
+            saveParsedCandidates(processed, previousDraft)
+        }
+    }
+
+    private suspend fun saveParsedCandidates(draft: IntakeDraft, previousDraft: IntakeDraft?) {
+        val parsed = parser.parse(draft.id, draft.textContent.orEmpty())
+        val previous = previousDraft?.let { repository.candidates(it.id) }.orEmpty()
+        val isDuplicate = parsed.isNotEmpty() && parsed.fingerprint() == previous.fingerprint()
+        val candidates = if (isDuplicate) {
+            parsed.map { candidate ->
+                candidate.copy(
+                    group = com.portfolio.fridgerescue.core.model.IntakeCandidateGroup.REVIEW,
+                    isSelected = false,
+                    reason = DUPLICATE_REASON,
+                )
+            }
+        } else {
+            parsed
+        }
+        repository.replaceCandidates(draft.id, candidates)
+    }
+
+    private fun List<com.portfolio.fridgerescue.core.model.IntakeCandidate>.fingerprint() =
+        map { "${it.normalizedName.lowercase()}#${it.quantity ?: 1}" }.sorted()
 
     private fun receiveText(
         intent: Intent,
@@ -134,7 +192,7 @@ class SharedContentReceiver(
             mimeType = mimeType,
             textContent = null,
             cachedFilePath = cachedFile.absolutePath,
-            status = IntakeDraftStatus.READY,
+            status = IntakeDraftStatus.PROCESSING,
             errorCode = null,
             createdAt = now,
             updatedAt = now,
@@ -221,5 +279,6 @@ class SharedContentReceiver(
     private companion object {
         const val MAX_TEXT_LENGTH = 1_000_000
         const val MAX_FILE_BYTES = 15L * 1024 * 1024
+        const val DUPLICATE_REASON = "같은 구매내역을 이미 불러왔어요"
     }
 }

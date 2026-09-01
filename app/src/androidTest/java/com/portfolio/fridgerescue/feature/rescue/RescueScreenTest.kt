@@ -306,6 +306,30 @@ class RescueScreenTest {
     }
 
     @Test
+    fun TC_OCR_005_partial_pdf_keeps_recognized_candidates_and_warning() {
+        val draft = IntakeDraft(
+            id = "partial-pdf",
+            contentType = IntakeContentType.PDF,
+            mimeType = "application/pdf",
+            textContent = "두부 2개",
+            cachedFilePath = null,
+            status = IntakeDraftStatus.READY,
+            errorCode = IntakeErrorCode.OCR_PARTIAL,
+            createdAt = Instant.parse("2026-09-01T00:00:00Z"),
+            updatedAt = Instant.parse("2026-09-01T00:00:00Z"),
+        )
+        val candidates = listOf(
+            intakeCandidate("두부", IntakeCandidateGroup.MANAGE, true, 0),
+        )
+
+        setScreen(contentState().copy(intakeReview = IntakeReviewUiState(draft, candidates)))
+
+        composeRule.onNodeWithText("일부 페이지만 읽었어요. 빠진 품목은 직접 추가할 수 있어요.")
+            .assertIsDisplayed()
+        composeRule.onNodeWithText("두부").assertIsDisplayed()
+    }
+
+    @Test
     fun TC_EDITOR_007_add_food_updates_queue() {
         val repository = InMemoryFoodRepository()
         val viewModel = RescueViewModel(

@@ -66,6 +66,7 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.work.runtime)
+    implementation(libs.mlkit.text.recognition.korean)
     ksp(libs.androidx.room.compiler)
 
     testImplementation(libs.junit4)
