@@ -19,6 +19,7 @@ import com.portfolio.fridgerescue.feature.rescue.domain.RescueUrgency
 import com.portfolio.fridgerescue.feature.rescue.domain.SaveFoodItemResult
 import com.portfolio.fridgerescue.feature.rescue.domain.SaveFoodItemUseCase
 import com.portfolio.fridgerescue.feature.intake.SaveIntakeCandidatesUseCase
+import com.portfolio.fridgerescue.feature.intake.FindDuplicateCandidatesUseCase
 import com.portfolio.fridgerescue.feature.report.GetReportMetricsUseCase
 import com.portfolio.fridgerescue.feature.notification.NotificationSettings
 import com.portfolio.fridgerescue.feature.notification.NotificationSettingsRepository
@@ -36,6 +37,8 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import com.portfolio.fridgerescue.feature.rescue.domain.FilterRescueQueueUseCase
+import com.portfolio.fridgerescue.feature.rescue.domain.PantryFilter
 
 class RescueViewModel(
     private val repository: FoodRepository,
@@ -43,6 +46,7 @@ class RescueViewModel(
     private val notificationSettingsRepository: NotificationSettingsRepository? = null,
     private val clock: Clock = Clock.systemDefaultZone(),
     private val getRescueQueue: GetRescueQueueUseCase = GetRescueQueueUseCase(),
+    private val filterRescueQueue: FilterRescueQueueUseCase = FilterRescueQueueUseCase(),
     private val saveFoodItem: SaveFoodItemUseCase = SaveFoodItemUseCase(repository),
     private val saveCandidateBatch: SaveIntakeCandidatesUseCase =
         SaveIntakeCandidatesUseCase(repository, clock),
@@ -52,6 +56,7 @@ class RescueViewModel(
     private val detailSelection = MutableStateFlow<DetailSelection?>(null)
     private val savingIntakeDraftId = MutableStateFlow<String?>(null)
     private val showImportOptions = MutableStateFlow(false)
+    private val pantryFilter = MutableStateFlow(PantryFilter())
 
     val events = eventChannel.receiveAsFlow()
 
@@ -115,34 +120,51 @@ class RescueViewModel(
         }
     } ?: flowOf(null)
 
+    private val queueState = combine(repository.foodItems, pantryFilter) { foodItems, filter ->
+        val allItems = getRescueQueue(foodItems, LocalDate.now(clock))
+        QueueSnapshot(
+            foodItems = foodItems,
+            allItems = allItems,
+            filteredItems = filterRescueQueue(allItems, filter),
+            filter = filter,
+        )
+    }
+
     val uiState = combine(
-        repository.foodItems,
+        queueState,
         editorState,
         detailState,
         intakeReview,
         showImportOptions,
     ) {
-            foodItems,
+            queue,
             editor,
             detail,
             review,
             importOptionsVisible,
         ->
-        val queueItems = getRescueQueue(foodItems, LocalDate.now(clock))
+        val reviewWithDuplicates = review?.copy(
+            duplicateCandidateIds = FindDuplicateCandidatesUseCase()(
+                candidates = review.candidates,
+                foods = queue.foodItems,
+            ),
+        )
         RescueUiState.Content(
-            items = queueItems,
-            urgentCount = queueItems.count {
+            items = queue.filteredItems,
+            totalItemCount = queue.allItems.size,
+            pantryFilter = queue.filter,
+            urgentCount = queue.allItems.count {
                 it.urgency == RescueUrgency.OVERDUE ||
                     it.urgency == RescueUrgency.TODAY ||
                     it.urgency == RescueUrgency.SOON
             },
-            needsReviewCount = queueItems.count {
+            needsReviewCount = queue.allItems.count {
                 it.urgency == RescueUrgency.NEEDS_DATE ||
                     it.foodItem.status == FoodStatus.NEEDS_REVIEW
             },
             editor = editor,
             detail = detail,
-            intakeReview = review,
+            intakeReview = reviewWithDuplicates,
             showImportOptions = importOptionsVisible,
         )
     }
@@ -169,6 +191,16 @@ class RescueViewModel(
             is RescueAction.SaveIntakeCandidates -> saveIntakeCandidates(action.draftId)
             RescueAction.OpenImportOptions -> showImportOptions.value = true
             RescueAction.DismissImportOptions -> showImportOptions.value = false
+            is RescueAction.ChangePantrySearch -> pantryFilter.value = pantryFilter.value.copy(
+                query = action.value,
+            )
+            is RescueAction.FilterPantryStorage -> pantryFilter.value = pantryFilter.value.copy(
+                storageLocation = action.storageLocation,
+            )
+            is RescueAction.FilterPantryStatus -> pantryFilter.value = pantryFilter.value.copy(
+                status = action.status,
+            )
+            RescueAction.ClearPantryFilters -> pantryFilter.value = PantryFilter()
             is RescueAction.StartManualFromIntake -> startManualFromIntake(action.draftId)
             RescueAction.StartAddFood -> {
                 showImportOptions.value = false
@@ -337,5 +369,12 @@ class RescueViewModel(
         val foodItemId: FoodItemId,
         val discardReason: String = "",
         val actionInProgress: Boolean = false,
+    )
+
+    private data class QueueSnapshot(
+        val foodItems: List<com.portfolio.fridgerescue.core.model.FoodItem>,
+        val allItems: List<com.portfolio.fridgerescue.feature.rescue.domain.RescueQueueItem>,
+        val filteredItems: List<com.portfolio.fridgerescue.feature.rescue.domain.RescueQueueItem>,
+        val filter: PantryFilter,
     )
 }

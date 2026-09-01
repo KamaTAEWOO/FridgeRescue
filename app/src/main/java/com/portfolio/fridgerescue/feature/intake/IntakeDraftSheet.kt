@@ -91,18 +91,21 @@ fun IntakeDraftSheet(
                 CandidateGroup(
                     title = stringResource(R.string.intake_group_manage),
                     candidates = state.candidates.filter { it.group == IntakeCandidateGroup.MANAGE },
+                    duplicateCandidateIds = state.duplicateCandidateIds,
                     enabled = !state.isSaving,
                     onCandidateSelected = onCandidateSelected,
                 )
                 CandidateGroup(
                     title = stringResource(R.string.intake_group_review),
                     candidates = state.candidates.filter { it.group == IntakeCandidateGroup.REVIEW },
+                    duplicateCandidateIds = state.duplicateCandidateIds,
                     enabled = !state.isSaving,
                     onCandidateSelected = onCandidateSelected,
                 )
                 CandidateGroup(
                     title = stringResource(R.string.intake_group_excluded),
                     candidates = state.candidates.filter { it.group == IntakeCandidateGroup.EXCLUDED },
+                    duplicateCandidateIds = state.duplicateCandidateIds,
                     enabled = !state.isSaving,
                     onCandidateSelected = onCandidateSelected,
                 )
@@ -158,6 +161,7 @@ fun IntakeDraftSheet(
 private fun CandidateGroup(
     title: String,
     candidates: List<IntakeCandidate>,
+    duplicateCandidateIds: Set<String>,
     enabled: Boolean,
     onCandidateSelected: (String, Boolean) -> Unit,
 ) {
@@ -188,6 +192,11 @@ private fun CandidateGroup(
                     val metadata = listOfNotNull(
                         candidate.quantity?.let { stringResource(R.string.food_quantity_format, it) },
                         candidate.reason,
+                        if (candidate.id in duplicateCandidateIds) {
+                            stringResource(R.string.intake_duplicate_existing)
+                        } else {
+                            null
+                        },
                     ).joinToString(" · ")
                     if (metadata.isNotEmpty()) {
                         Text(

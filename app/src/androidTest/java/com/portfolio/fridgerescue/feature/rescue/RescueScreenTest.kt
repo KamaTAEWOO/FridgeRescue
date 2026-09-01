@@ -10,6 +10,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performScrollToIndex
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTextReplacement
 import com.portfolio.fridgerescue.core.testing.InMemoryFoodRepository
@@ -35,6 +36,7 @@ import com.portfolio.fridgerescue.feature.rescue.presentation.RescueRoute
 import com.portfolio.fridgerescue.feature.rescue.presentation.RescueScreen
 import com.portfolio.fridgerescue.feature.rescue.presentation.RescueUiState
 import com.portfolio.fridgerescue.feature.rescue.presentation.IntakeReviewUiState
+import com.portfolio.fridgerescue.feature.rescue.presentation.PantryFilterTestTags
 import com.portfolio.fridgerescue.feature.rescue.presentation.RescueViewModel
 import com.portfolio.fridgerescue.ui.theme.FridgeRescueTheme
 import com.portfolio.fridgerescue.feature.report.AppSection
@@ -73,6 +75,7 @@ class RescueScreenTest {
         setScreen(state)
 
         composeRule.onNodeWithText("표시기한 · 9월 2일").assertIsDisplayed()
+        composeRule.onNodeWithTag(PantryFilterTestTags.LIST).performScrollToIndex(5)
         composeRule.onNodeWithText("앱 예상 소비일 · 9월 4일").assertIsDisplayed()
     }
 
@@ -94,7 +97,8 @@ class RescueScreenTest {
                 RescueRoute(viewModel = viewModel)
             }
         }
-        composeRule.onNodeWithText("먹었어요").performScrollTo().performClick()
+        composeRule.onNodeWithTag(PantryFilterTestTags.LIST).performScrollToIndex(4)
+        composeRule.onNodeWithText("먹었어요").performClick()
         composeRule.waitUntil(timeoutMillis = 10_000) {
             runBlocking { repository.findById(foodItem.id)?.status == FoodStatus.CONSUMED }
         }
@@ -103,7 +107,8 @@ class RescueScreenTest {
         composeRule.waitUntil(timeoutMillis = 10_000) {
             runBlocking { repository.findById(foodItem.id)?.status == FoodStatus.ACTIVE }
         }
-        composeRule.onNodeWithText("시금치").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithTag(PantryFilterTestTags.LIST).performScrollToIndex(4)
+        composeRule.onNodeWithText("시금치").assertIsDisplayed()
     }
 
     @Test
@@ -120,7 +125,8 @@ class RescueScreenTest {
         )
         setRoute(viewModel)
 
-        composeRule.onNodeWithText("상태 기록").performScrollTo().performClick()
+        composeRule.onNodeWithTag(PantryFilterTestTags.LIST).performScrollToIndex(4)
+        composeRule.onNodeWithText("상태 기록").performClick()
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText("아직 있어요").fetchSemanticsNodes().isNotEmpty()
         }
@@ -135,6 +141,7 @@ class RescueScreenTest {
     fun TC_UI_009_empty_queue_shows_next_step_guidance() {
         setScreen(contentState())
 
+        composeRule.onNodeWithTag(PantryFilterTestTags.LIST).performScrollToIndex(4)
         composeRule.onNodeWithText("지금 구조할 재료가 없어요").assertIsDisplayed()
         composeRule.onNodeWithText("재료 추가를 눌러 첫 식재료를 담아보세요.")
             .assertIsDisplayed()
@@ -263,7 +270,9 @@ class RescueScreenTest {
         composeRule.waitUntil(timeoutMillis = 5_000) {
             runBlocking { foodRepository.foodItems.first().size == 2 }
         }
+        composeRule.onNodeWithTag(PantryFilterTestTags.LIST).performScrollToIndex(4)
         composeRule.onNodeWithText("두부").assertIsDisplayed()
+        composeRule.onNodeWithTag(PantryFilterTestTags.LIST).performScrollToIndex(5)
         composeRule.onNodeWithText("시금치").assertIsDisplayed()
     }
 
@@ -353,10 +362,14 @@ class RescueScreenTest {
         composeRule.onNodeWithTag(FoodEditorTestTags.SAVE).performScrollTo().performClick()
 
         composeRule.waitUntil(timeoutMillis = 5_000) {
-            composeRule.onAllNodesWithText("두부").fetchSemanticsNodes().isNotEmpty()
+            runBlocking { repository.foodItems.first().size == 1 }
         }
+        composeRule.onNodeWithTag(PantryFilterTestTags.LIST).performScrollToIndex(4)
         composeRule.onNodeWithText("확정한 날짜 · 9월 3일").assertIsDisplayed()
-        composeRule.onNodeWithText("냉동").performScrollTo().assertIsDisplayed()
+        assertEquals(
+            StorageLocation.FROZEN,
+            runBlocking { repository.foodItems.first().single().storageLocation },
+        )
     }
 
     @Test
@@ -373,7 +386,8 @@ class RescueScreenTest {
         )
         setRoute(viewModel)
 
-        composeRule.onNodeWithText("수정").performScrollTo().performClick()
+        composeRule.onNodeWithTag(PantryFilterTestTags.LIST).performScrollToIndex(4)
+        composeRule.onNodeWithText("수정").performClick()
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithTag(FoodEditorTestTags.NAME).fetchSemanticsNodes().isNotEmpty()
         }
@@ -384,6 +398,96 @@ class RescueScreenTest {
             composeRule.onAllNodesWithText("부침용 두부").fetchSemanticsNodes().isNotEmpty()
         }
         assertEquals(original.id, runBlocking { repository.findById(original.id) }?.id)
+    }
+
+    @Test
+    fun TC_PANTRY_002_search_filters_queue_and_clear_restores_it() {
+        val repository = InMemoryFoodRepository(
+            listOf(
+                foodItem(
+                    id = "tofu",
+                    name = "두부",
+                    date = FoodDate(today.plusDays(1), FoodDateSource.APP_ESTIMATED),
+                ),
+                foodItem(
+                    id = "milk",
+                    name = "우유",
+                    date = FoodDate(today.plusDays(2), FoodDateSource.APP_ESTIMATED),
+                ),
+            ),
+        )
+        setRoute(
+            RescueViewModel(
+                repository = repository,
+                clock = fixedClock(),
+            ),
+        )
+
+        composeRule.onNodeWithTag(PantryFilterTestTags.SEARCH).performTextInput("두부")
+
+        composeRule.onNodeWithText("두부").performScrollTo().assertIsDisplayed()
+        composeRule.onAllNodesWithText("우유").assertCountEquals(0)
+
+        composeRule.onNodeWithTag(PantryFilterTestTags.SEARCH).performTextReplacement("없는 재료")
+        composeRule.onNodeWithTag(PantryFilterTestTags.LIST).performScrollToIndex(4)
+        composeRule.onNodeWithText("조건에 맞는 재료가 없어요").assertIsDisplayed()
+        composeRule.onNodeWithTag(PantryFilterTestTags.CLEAR).performClick()
+
+        composeRule.waitForIdle()
+        composeRule.onNodeWithTag(PantryFilterTestTags.LIST).performScrollToIndex(4)
+        composeRule.onNodeWithText("두부").assertIsDisplayed()
+        composeRule.onNodeWithTag(PantryFilterTestTags.LIST).performScrollToIndex(5)
+        composeRule.onNodeWithText("우유").assertIsDisplayed()
+    }
+
+    @Test
+    fun TC_DUP_001_existing_pantry_item_shows_non_merging_warning() {
+        val draft = IntakeDraft(
+            id = "grouped",
+            contentType = IntakeContentType.TEXT,
+            mimeType = "text/plain",
+            textContent = "두부",
+            cachedFilePath = null,
+            status = IntakeDraftStatus.READY,
+            errorCode = null,
+            createdAt = Instant.parse("2026-09-01T00:00:00Z"),
+            updatedAt = Instant.parse("2026-09-01T00:00:00Z"),
+        )
+        val intakeRepository = InMemoryIntakeDraftRepository(
+            initialDraft = draft,
+            initialCandidates = listOf(
+                intakeCandidate("두부", IntakeCandidateGroup.MANAGE, true, 0),
+            ),
+        )
+        val foodRepository = InMemoryFoodRepository(
+            listOf(
+                foodItem(
+                    id = "existing-tofu",
+                    name = "두부",
+                    date = FoodDate(today.plusDays(1), FoodDateSource.APP_ESTIMATED),
+                ),
+            ),
+        )
+        setRoute(
+            RescueViewModel(
+                repository = foodRepository,
+                intakeDraftRepository = intakeRepository,
+                clock = fixedClock(),
+            ),
+        )
+
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule.onAllNodesWithText(
+                "냉장고에 같은 이름의 재료가 있어요. 자동으로 합치지 않아요.",
+                substring = true,
+            ).fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithText(
+            "냉장고에 같은 이름의 재료가 있어요. 자동으로 합치지 않아요.",
+            substring = true,
+        )
+            .performScrollTo()
+            .assertIsDisplayed()
     }
 
     private fun setScreen(

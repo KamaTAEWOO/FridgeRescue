@@ -62,10 +62,12 @@
 | JVM 단위 | `TC-REPORT-001~003` | `GetReportMetricsUseCaseTest` | `AUTOMATED` |
 | Compose UI | `TC-REPORT-004`, `TC-SETTINGS-001` | `RescueScreenTest` | `AUTOMATED` |
 | JVM 단위 | `TC-PRIVACY-003` | `SharedIntakeCacheCleanerTest` | `AUTOMATED` |
+| JVM 단위 | `TC-PANTRY-002`, `TC-DUP-001` | `FilterRescueQueueUseCaseTest`, `FindDuplicateCandidatesUseCaseTest` | `AUTOMATED` |
+| Compose UI | `TC-PANTRY-002`, `TC-DUP-001` | `RescueScreenTest` | `AUTOMATED` |
 
-- 자동 테스트: 70개
+- 자동 테스트: 75개
 - 최근 검증 환경: `FridgeRescue_API_36`, Android API 36
-- 최근 결과: JVM 35개 통과, Room·Intent·Compose 계측 35개 통과
+- 최근 결과: JVM 38개 통과, Room·Intent·Compose 계측 37개 통과
 
 ## 3. 자동화 계층
 

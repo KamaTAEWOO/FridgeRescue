@@ -9,12 +9,16 @@ import com.portfolio.fridgerescue.core.model.IntakeCandidate
 import com.portfolio.fridgerescue.core.model.StorageLocation
 import com.portfolio.fridgerescue.feature.rescue.domain.FoodItemDraftError
 import com.portfolio.fridgerescue.feature.rescue.domain.RescueQueueItem
+import com.portfolio.fridgerescue.feature.rescue.domain.PantryFilter
+import com.portfolio.fridgerescue.feature.rescue.domain.PantryStatusFilter
 
 sealed interface RescueUiState {
     data object Loading : RescueUiState
 
     data class Content(
         val items: List<RescueQueueItem>,
+        val totalItemCount: Int = items.size,
+        val pantryFilter: PantryFilter = PantryFilter(),
         val urgentCount: Int,
         val needsReviewCount: Int,
         val editor: FoodEditorUiState? = null,
@@ -28,6 +32,7 @@ data class IntakeReviewUiState(
     val draft: IntakeDraft,
     val candidates: List<IntakeCandidate>,
     val isSaving: Boolean = false,
+    val duplicateCandidateIds: Set<String> = emptySet(),
 ) {
     val selectedCount: Int get() = candidates.count { it.isSelected }
 }
@@ -69,6 +74,10 @@ sealed interface RescueAction {
     data class SaveIntakeCandidates(val draftId: String) : RescueAction
     data object OpenImportOptions : RescueAction
     data object DismissImportOptions : RescueAction
+    data class ChangePantrySearch(val value: String) : RescueAction
+    data class FilterPantryStorage(val storageLocation: StorageLocation?) : RescueAction
+    data class FilterPantryStatus(val status: PantryStatusFilter) : RescueAction
+    data object ClearPantryFilters : RescueAction
     data class StartManualFromIntake(val draftId: String) : RescueAction
     data object StartAddFood : RescueAction
     data class StartEditFood(val foodItemId: FoodItemId) : RescueAction

@@ -1,6 +1,7 @@
 package com.portfolio.fridgerescue.feature.rescue.presentation
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -19,10 +20,13 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
@@ -41,6 +45,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.portfolio.fridgerescue.R
 import com.portfolio.fridgerescue.core.model.FoodDate
@@ -53,6 +58,7 @@ import com.portfolio.fridgerescue.feature.rescue.components.FoodRescueCard
 import com.portfolio.fridgerescue.feature.intake.IntakeDraftSheet
 import com.portfolio.fridgerescue.feature.intake.IntakeOptionsSheet
 import com.portfolio.fridgerescue.feature.rescue.domain.GetRescueQueueUseCase
+import com.portfolio.fridgerescue.feature.rescue.domain.PantryStatusFilter
 import com.portfolio.fridgerescue.feature.report.AppSection
 import com.portfolio.fridgerescue.feature.report.ReportContent
 import com.portfolio.fridgerescue.feature.report.ReportMetrics
@@ -225,7 +231,9 @@ private fun RescueContent(
                     )
                 }
                 LazyColumn(
-                    modifier = Modifier.weight(0.58f),
+                    modifier = Modifier
+                        .weight(0.58f)
+                        .testTag(PantryFilterTestTags.LIST),
                     contentPadding = PaddingValues(start = 12.dp, end = 24.dp, top = 24.dp, bottom = 24.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
@@ -236,7 +244,8 @@ private fun RescueContent(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .widthIn(max = 720.dp),
+                    .widthIn(max = 720.dp)
+                    .testTag(PantryFilterTestTags.LIST),
                 contentPadding = PaddingValues(horizontal = 20.dp, vertical = 24.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
@@ -294,8 +303,15 @@ private fun LazyListScope.queueItems(
             )
         }
     }
+    item { PantryFilterBar(uiState.pantryFilter, onAction) }
     if (uiState.items.isEmpty()) {
-        item { EmptyContent() }
+        item {
+            if (uiState.totalItemCount > 0 && uiState.pantryFilter.isActive) {
+                FilterEmptyContent { onAction(RescueAction.ClearPantryFilters) }
+            } else {
+                EmptyContent()
+            }
+        }
     } else {
         items(items = uiState.items, key = { it.foodItem.id.value }) { queueItem ->
             FoodRescueCard(
@@ -307,6 +323,106 @@ private fun LazyListScope.queueItems(
         }
     }
     item { Spacer(modifier = Modifier.height(16.dp)) }
+}
+
+object PantryFilterTestTags {
+    const val LIST = "pantry-list"
+    const val SEARCH = "pantry-filter-search"
+    const val CLEAR = "pantry-filter-clear"
+}
+
+@Composable
+private fun PantryFilterBar(
+    filter: com.portfolio.fridgerescue.feature.rescue.domain.PantryFilter,
+    onAction: (RescueAction) -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        OutlinedTextField(
+            value = filter.query,
+            onValueChange = { onAction(RescueAction.ChangePantrySearch(it)) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag(PantryFilterTestTags.SEARCH),
+            label = { Text(stringResource(R.string.pantry_search_label)) },
+            placeholder = { Text(stringResource(R.string.pantry_search_placeholder)) },
+            singleLine = true,
+        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            StorageLocationFilterChip(
+                label = stringResource(R.string.filter_all),
+                selected = filter.storageLocation == null,
+                onClick = { onAction(RescueAction.FilterPantryStorage(null)) },
+            )
+            StorageLocation.entries.forEach { location ->
+                StorageLocationFilterChip(
+                    label = location.filterLabel(),
+                    selected = filter.storageLocation == location,
+                    onClick = { onAction(RescueAction.FilterPantryStorage(location)) },
+                )
+            }
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            PantryStatusFilter.entries.forEach { status ->
+                FilterChip(
+                    selected = filter.status == status,
+                    onClick = { onAction(RescueAction.FilterPantryStatus(status)) },
+                    label = { Text(status.label()) },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun StorageLocationFilterChip(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    FilterChip(selected = selected, onClick = onClick, label = { Text(label) })
+}
+
+@Composable
+private fun PantryStatusFilter.label(): String = when (this) {
+    PantryStatusFilter.ALL -> stringResource(R.string.filter_status_all)
+    PantryStatusFilter.ACTIVE -> stringResource(R.string.filter_status_active)
+    PantryStatusFilter.NEEDS_REVIEW -> stringResource(R.string.filter_status_review)
+}
+
+@Composable
+private fun StorageLocation.filterLabel(): String = when (this) {
+    StorageLocation.REFRIGERATED -> stringResource(R.string.storage_refrigerated)
+    StorageLocation.FROZEN -> stringResource(R.string.storage_frozen)
+    StorageLocation.ROOM_TEMPERATURE -> stringResource(R.string.storage_room_temperature)
+}
+
+@Composable
+private fun FilterEmptyContent(onClear: () -> Unit) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(22.dp),
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(stringResource(R.string.pantry_filter_empty), fontWeight = FontWeight.Bold)
+            androidx.compose.material3.TextButton(
+                onClick = onClear,
+                modifier = Modifier.testTag(PantryFilterTestTags.CLEAR),
+            ) { Text(stringResource(R.string.pantry_filter_clear)) }
+        }
+    }
 }
 
 @Composable
