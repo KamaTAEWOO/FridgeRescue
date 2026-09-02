@@ -1,7 +1,9 @@
 package com.portfolio.fridgerescue.feature.rescue.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -14,11 +16,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.portfolio.fridgerescue.R
 import com.portfolio.fridgerescue.core.model.FoodDateSource
@@ -37,7 +42,11 @@ fun FoodRescueCard(
     val emphasized = queueItem.urgency == RescueUrgency.OVERDUE ||
         queueItem.urgency == RescueUrgency.TODAY
     val containerColor = if (emphasized) {
-        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.58f)
+        lerp(
+            MaterialTheme.colorScheme.surface,
+            MaterialTheme.colorScheme.primaryContainer,
+            0.62f,
+        )
     } else {
         MaterialTheme.colorScheme.surface
     }
@@ -46,7 +55,15 @@ fun FoodRescueCard(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = containerColor),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        border = BorderStroke(
+            width = 1.dp,
+            color = if (emphasized) {
+                MaterialTheme.colorScheme.primaryContainer
+            } else {
+                MaterialTheme.colorScheme.outlineVariant
+            },
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         Column(
             modifier = Modifier.padding(14.dp),
@@ -62,18 +79,25 @@ fun FoodRescueCard(
                         text = queueItem.foodItem.name,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
                     Text(
                         text = queueItem.dateDescription(),
                         modifier = Modifier.padding(top = 3.dp),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
                 }
                 UrgencyBadge(queueItem)
             }
 
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
                 MetadataBadge(queueItem.foodItem.storageLocation.label())
                 queueItem.foodItem.quantity?.let {
                     MetadataBadge(stringResource(R.string.food_quantity_format, it))
@@ -90,9 +114,9 @@ fun FoodRescueCard(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                OutlinedButton(
+                TextButton(
                     onClick = onEdit,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(0.9f),
                 ) {
                     Text(
                         text = stringResource(R.string.rescue_edit_food),
@@ -101,7 +125,7 @@ fun FoodRescueCard(
                 }
                 OutlinedButton(
                     onClick = onOpenActions,
-                    modifier = Modifier.weight(1.25f),
+                    modifier = Modifier.weight(1.2f),
                 ) {
                     Text(
                         text = stringResource(R.string.rescue_more_actions),
@@ -110,7 +134,7 @@ fun FoodRescueCard(
                 }
                 Button(
                     onClick = onMarkConsumed,
-                    modifier = Modifier.weight(1.5f),
+                    modifier = Modifier.weight(1.4f),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary,
                     ),

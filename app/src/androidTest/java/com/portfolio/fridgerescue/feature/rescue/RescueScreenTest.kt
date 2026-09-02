@@ -78,7 +78,7 @@ class RescueScreenTest {
         setScreen(state)
 
         composeRule.onNodeWithTag(PantryFilterTestTags.LIST).performScrollToIndex(4)
-        composeRule.onNodeWithText("표시기한 · 9월 2일").assertIsDisplayed()
+        composeRule.onNodeWithText("제품 표시일 · 9월 2일").assertIsDisplayed()
         composeRule.onNodeWithTag(PantryFilterTestTags.LIST).performScrollToIndex(5)
         composeRule.onNodeWithText("앱 예상 소비일 · 9월 4일").assertIsDisplayed()
     }
@@ -130,7 +130,7 @@ class RescueScreenTest {
         setRoute(viewModel)
 
         composeRule.onNodeWithTag(PantryFilterTestTags.LIST).performScrollToIndex(4)
-        composeRule.onNodeWithText("상태 기록").performClick()
+        composeRule.onNodeWithText("다른 처리").performClick()
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText("아직 있어요").fetchSemanticsNodes().isNotEmpty()
         }
@@ -207,6 +207,31 @@ class RescueScreenTest {
         composeRule.runOnIdle {
             assertEquals(AppSection.REPORT, requestedSection)
         }
+    }
+
+    @Test
+    fun TC_UI_012_food_card_uses_compact_natural_labels() {
+        setScreen(
+            contentState(
+                FoodItem(
+                    id = FoodItemId("compact-labels"),
+                    name = "양송이버섯",
+                    quantity = 1,
+                    storageLocation = StorageLocation.REFRIGERATED,
+                    dates = listOf(
+                        FoodDate(today.minusDays(1), FoodDateSource.MANUFACTURER_DISPLAYED),
+                    ),
+                    isOpened = true,
+                ),
+            ),
+        )
+
+        composeRule.onNodeWithTag(PantryFilterTestTags.LIST).performScrollToIndex(4)
+        composeRule.onNodeWithText("제품 표시일 · 8월 31일").assertIsDisplayed()
+        composeRule.onNodeWithText("기한 1일 지남").assertIsDisplayed()
+        composeRule.onAllNodesWithText("1개").assertCountEquals(2)
+        composeRule.onNodeWithText("개봉").assertIsDisplayed()
+        composeRule.onNodeWithText("다른 처리").assertIsDisplayed()
     }
 
     @Test
@@ -436,7 +461,7 @@ class RescueScreenTest {
             runBlocking { repository.foodItems.first().size == 1 }
         }
         composeRule.onNodeWithTag(PantryFilterTestTags.LIST).performScrollToIndex(4)
-        composeRule.onNodeWithText("확정한 날짜 · 9월 3일").assertIsDisplayed()
+        composeRule.onNodeWithText("직접 확인한 날짜 · 9월 3일").assertIsDisplayed()
         assertEquals(
             StorageLocation.FROZEN,
             runBlocking { repository.foodItems.first().single().storageLocation },
@@ -625,7 +650,7 @@ class RescueScreenTest {
             ),
         )
 
-        composeRule.onNodeWithText("표시기한 후보 2027-09-30", substring = true)
+        composeRule.onNodeWithText("제품 표시일 후보 2027-09-30", substring = true)
             .performScrollTo()
             .assertIsDisplayed()
     }
