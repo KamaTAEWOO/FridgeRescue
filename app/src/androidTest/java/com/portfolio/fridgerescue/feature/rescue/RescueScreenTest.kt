@@ -399,9 +399,11 @@ class RescueScreenTest {
         setRoute(viewModel)
 
         composeRule.onNodeWithText("재료 추가").performClick()
-        composeRule.onNodeWithText("종이 영수증 촬영").assertIsDisplayed()
+        composeRule.onNodeWithText("영수증으로 한 번에").assertIsDisplayed()
+        composeRule.onNodeWithText("영수증 촬영").assertIsDisplayed()
         composeRule.onNodeWithText("사진에서 선택").assertIsDisplayed()
-        composeRule.onNodeWithText("일반·GS1 바코드 스캔").assertIsDisplayed()
+        composeRule.onNodeWithText("상품 하나씩").assertIsDisplayed()
+        composeRule.onNodeWithText("바코드 스캔").assertIsDisplayed()
         composeRule.onNodeWithText("직접 입력").performClick()
 
         composeRule.onNodeWithText("새 식재료 추가").assertIsDisplayed()
