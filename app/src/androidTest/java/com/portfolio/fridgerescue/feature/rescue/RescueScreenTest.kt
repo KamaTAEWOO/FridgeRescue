@@ -195,6 +195,21 @@ class RescueScreenTest {
     }
 
     @Test
+    fun TC_UI_011_bottom_navigation_dispatches_selected_section() {
+        var requestedSection: AppSection? = null
+        setScreen(
+            uiState = contentState(),
+            onSectionSelected = { requestedSection = it },
+        )
+
+        composeRule.onNodeWithText("리포트").assertIsDisplayed().performClick()
+
+        composeRule.runOnIdle {
+            assertEquals(AppSection.REPORT, requestedSection)
+        }
+    }
+
+    @Test
     fun TC_FAMILY_001_disconnected_settings_offer_explicit_opt_in() {
         setScreen(uiState = contentState(), selectedSection = AppSection.SETTINGS)
 
@@ -623,6 +638,7 @@ class RescueScreenTest {
         reportMetrics: ReportMetrics = ReportMetrics(),
         familySyncState: FamilySyncUiState = FamilySyncUiState(),
         onDeleteAllData: () -> Unit = {},
+        onSectionSelected: (AppSection) -> Unit = {},
     ) {
         composeRule.setContent {
             FridgeRescueTheme {
@@ -635,6 +651,7 @@ class RescueScreenTest {
                     reportMetrics = reportMetrics,
                     familySyncState = familySyncState,
                     onDeleteAllData = onDeleteAllData,
+                    onSectionSelected = onSectionSelected,
                 )
             }
         }

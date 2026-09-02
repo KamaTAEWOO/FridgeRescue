@@ -44,13 +44,13 @@ fun FoodRescueCard(
 
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = containerColor),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
     ) {
         Column(
-            modifier = Modifier.padding(18.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp),
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -65,7 +65,7 @@ fun FoodRescueCard(
                     )
                     Text(
                         text = queueItem.dateDescription(),
-                        modifier = Modifier.padding(top = 5.dp),
+                        modifier = Modifier.padding(top = 3.dp),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -73,7 +73,7 @@ fun FoodRescueCard(
                 UrgencyBadge(queueItem)
             }
 
-            Row(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 MetadataBadge(queueItem.foodItem.storageLocation.label())
                 queueItem.foodItem.quantity?.let {
                     MetadataBadge(stringResource(R.string.food_quantity_format, it))
@@ -88,7 +88,7 @@ fun FoodRescueCard(
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 OutlinedButton(
                     onClick = onEdit,
@@ -96,7 +96,6 @@ fun FoodRescueCard(
                 ) {
                     Text(
                         text = stringResource(R.string.rescue_edit_food),
-                        modifier = Modifier.padding(vertical = 3.dp),
                         fontWeight = FontWeight.Bold,
                     )
                 }
@@ -106,7 +105,6 @@ fun FoodRescueCard(
                 ) {
                     Text(
                         text = stringResource(R.string.rescue_more_actions),
-                        modifier = Modifier.padding(vertical = 3.dp),
                         fontWeight = FontWeight.Bold,
                     )
                 }
@@ -119,7 +117,6 @@ fun FoodRescueCard(
                 ) {
                     Text(
                         text = stringResource(R.string.rescue_mark_consumed),
-                        modifier = Modifier.padding(vertical = 3.dp),
                         fontWeight = FontWeight.Bold,
                     )
                 }
@@ -152,7 +149,7 @@ private fun UrgencyBadge(queueItem: RescueQueueItem) {
     ) {
         Text(
             text = label,
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+            modifier = Modifier.padding(horizontal = 9.dp, vertical = 5.dp),
             style = MaterialTheme.typography.labelMedium,
             fontWeight = FontWeight.Bold,
         )
@@ -167,7 +164,7 @@ private fun MetadataBadge(label: String) {
     ) {
         Text(
             text = label,
-            modifier = Modifier.padding(horizontal = 9.dp, vertical = 5.dp),
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )

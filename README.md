@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="docs/assets/fridge-rescue-demo.mp4">20초 원본 데모 영상</a>
+  <a href="docs/assets/fridge-rescue-demo.mp4">14초 원본 데모 영상</a>
 </p>
 
 ## 해결하려는 문제
@@ -70,7 +70,7 @@
 
 포트폴리오 시연용 식재료·이력·갤러리 사진은 [데모 데이터 가이드](./docs/DEMO_DATA.md)를 따라 한 명령으로 주입할 수 있습니다.
 
-- 기능 자동 테스트 100개: 앱·서버 JVM 52개, Room·Intent·Compose 계측 48개
+- 기능 자동 테스트 101개: 앱·서버 JVM 52개, Room·Intent·Compose 계측 49개
 - API 26과 API 36 에뮬레이터에서 전체 계측 테스트 통과
 - TalkBack 실제 서비스 연결 후 클릭 요소 접근성 라벨 정적 감사 통과
 - 재부팅 후 WorkManager 재등록, 강제 Doze 지연, 절전 모드 실행 확인

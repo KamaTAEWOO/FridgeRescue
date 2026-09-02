@@ -2,6 +2,7 @@ package com.portfolio.fridgerescue.feature.rescue.presentation
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -9,23 +10,25 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Icon
 import androidx.compose.material.icons.Icons
@@ -42,6 +45,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -96,21 +100,10 @@ fun RescueScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
             if (uiState is RescueUiState.Content) {
-                NavigationBar {
-                    AppSection.entries.forEach { section ->
-                        NavigationBarItem(
-                            selected = selectedSection == section,
-                            onClick = { onSectionSelected(section) },
-                            icon = {
-                                Icon(
-                                    imageVector = section.icon(),
-                                    contentDescription = null,
-                                )
-                            },
-                            label = { Text(section.label()) },
-                        )
-                    }
-                }
+                RescueNavigationBar(
+                    selectedSection = selectedSection,
+                    onSectionSelected = onSectionSelected,
+                )
             }
         },
         containerColor = MaterialTheme.colorScheme.background,
@@ -240,8 +233,8 @@ private fun RescueContent(
             ) {
                 LazyColumn(
                     modifier = Modifier.weight(0.42f),
-                    contentPadding = PaddingValues(start = 24.dp, top = 24.dp, bottom = 24.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    contentPadding = PaddingValues(start = 24.dp, top = 16.dp, bottom = 20.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     overviewItems(
                         uiState = uiState,
@@ -254,8 +247,8 @@ private fun RescueContent(
                     modifier = Modifier
                         .weight(0.58f)
                         .testTag(PantryFilterTestTags.LIST),
-                    contentPadding = PaddingValues(start = 12.dp, end = 24.dp, top = 24.dp, bottom = 24.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    contentPadding = PaddingValues(start = 10.dp, end = 24.dp, top = 16.dp, bottom = 20.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     queueItems(uiState, onAction)
                 }
@@ -266,8 +259,8 @@ private fun RescueContent(
                     .fillMaxSize()
                     .widthIn(max = 720.dp)
                     .testTag(PantryFilterTestTags.LIST),
-                contentPadding = PaddingValues(horizontal = 20.dp, vertical = 24.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 overviewItems(
                     uiState = uiState,
@@ -309,7 +302,7 @@ private fun LazyListScope.queueItems(
     onAction: (RescueAction) -> Unit,
 ) {
     item {
-        Column(modifier = Modifier.padding(top = 12.dp, bottom = 4.dp)) {
+        Column(modifier = Modifier.padding(top = 4.dp)) {
             Text(
                 text = stringResource(R.string.rescue_queue_title),
                 style = MaterialTheme.typography.titleLarge,
@@ -356,13 +349,14 @@ private fun PantryFilterBar(
     filter: com.portfolio.fridgerescue.feature.rescue.domain.PantryFilter,
     onAction: (RescueAction) -> Unit,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         OutlinedTextField(
             value = filter.query,
             onValueChange = { onAction(RescueAction.ChangePantrySearch(it)) },
             modifier = Modifier
                 .fillMaxWidth()
                 .testTag(PantryFilterTestTags.SEARCH),
+            shape = RoundedCornerShape(16.dp),
             label = { Text(stringResource(R.string.pantry_search_label)) },
             placeholder = { Text(stringResource(R.string.pantry_search_placeholder)) },
             singleLine = true,
@@ -450,22 +444,28 @@ private fun NotificationPermissionCard(onRequestPermission: () -> Unit) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         color = MaterialTheme.colorScheme.secondaryContainer,
-        shape = RoundedCornerShape(22.dp),
+        shape = RoundedCornerShape(18.dp),
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = stringResource(R.string.notification_permission_title),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-            )
-            Text(
-                text = stringResource(R.string.notification_permission_description),
-                modifier = Modifier.padding(top = 4.dp),
-                color = MaterialTheme.colorScheme.onSecondaryContainer,
-            )
-            androidx.compose.material3.Button(
+        Row(
+            modifier = Modifier.padding(start = 14.dp, end = 8.dp, top = 12.dp, bottom = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.notification_permission_title),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                )
+                Text(
+                    text = stringResource(R.string.notification_permission_description),
+                    modifier = Modifier.padding(top = 2.dp),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                )
+            }
+            androidx.compose.material3.TextButton(
                 onClick = onRequestPermission,
-                modifier = Modifier.padding(top = 10.dp),
+                modifier = Modifier.padding(start = 4.dp),
             ) { Text(stringResource(R.string.notification_permission_action)) }
         }
     }
@@ -475,67 +475,73 @@ private fun NotificationPermissionCard(onRequestPermission: () -> Unit) {
 private fun RescueHeader(onImport: () -> Unit, onAddFood: () -> Unit) {
     Column {
         Row(
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            Box(
-                modifier = Modifier
-                    .size(10.dp)
-                    .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
-            )
-            Text(
-                text = stringResource(R.string.rescue_eyebrow),
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.Bold,
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(7.dp),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(9.dp)
+                        .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
+                )
+                Text(
+                    text = stringResource(R.string.rescue_eyebrow),
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+            Surface(
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                shape = RoundedCornerShape(999.dp),
+            ) {
+                Text(
+                    text = stringResource(R.string.rescue_storage_badge),
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
         Text(
             text = stringResource(R.string.rescue_title),
-            modifier = Modifier.padding(top = 14.dp),
-            style = MaterialTheme.typography.headlineLarge,
+            modifier = Modifier.padding(top = 8.dp),
+            style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Black,
         )
         Text(
             text = stringResource(R.string.rescue_subtitle),
-            modifier = Modifier.padding(top = 8.dp),
-            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.padding(top = 3.dp),
+            style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        Surface(
-            modifier = Modifier.padding(top = 14.dp),
-            color = MaterialTheme.colorScheme.surfaceVariant,
-            shape = RoundedCornerShape(999.dp),
-        ) {
-            Text(
-                text = stringResource(R.string.rescue_storage_badge),
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp),
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        androidx.compose.material3.Button(
-            onClick = onImport,
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 16.dp),
+                .padding(top = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Text(
-                text = stringResource(R.string.rescue_import),
-                modifier = Modifier.padding(vertical = 3.dp),
-                fontWeight = FontWeight.Bold,
-            )
-        }
-        androidx.compose.material3.OutlinedButton(
-            onClick = onAddFood,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp),
-        ) {
-            Text(
-                text = stringResource(R.string.rescue_add_food),
-                modifier = Modifier.padding(vertical = 3.dp),
-                fontWeight = FontWeight.Bold,
-            )
+            androidx.compose.material3.Button(
+                onClick = onImport,
+                modifier = Modifier.weight(1.45f),
+            ) {
+                Text(
+                    text = stringResource(R.string.rescue_import),
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+            androidx.compose.material3.OutlinedButton(
+                onClick = onAddFood,
+                modifier = Modifier.weight(1f),
+            ) {
+                Text(
+                    text = stringResource(R.string.rescue_add_food),
+                    fontWeight = FontWeight.Bold,
+                )
+            }
         }
     }
 }
@@ -546,10 +552,8 @@ private fun SummaryRow(
     needsReviewCount: Int,
 ) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 12.dp),
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         SummaryTile(
             label = stringResource(R.string.rescue_urgent_label),
@@ -576,12 +580,12 @@ private fun SummaryTile(
     Surface(
         modifier = modifier,
         color = containerColor,
-        shape = RoundedCornerShape(22.dp),
+        shape = RoundedCornerShape(18.dp),
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp)) {
             Text(
                 text = stringResource(R.string.rescue_count_format, count),
-                style = MaterialTheme.typography.headlineSmall,
+                style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Black,
             )
             Text(
@@ -589,6 +593,75 @@ private fun SummaryTile(
                 modifier = Modifier.padding(top = 2.dp),
                 style = MaterialTheme.typography.labelMedium,
             )
+        }
+    }
+}
+
+@Composable
+private fun RescueNavigationBar(
+    selectedSection: AppSection,
+    onSectionSelected: (AppSection) -> Unit,
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.background)
+            .windowInsetsPadding(WindowInsets.navigationBars)
+            .padding(start = 16.dp, end = 16.dp, top = 6.dp, bottom = 8.dp),
+    ) {
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            color = MaterialTheme.colorScheme.primary,
+            shape = RoundedCornerShape(24.dp),
+            shadowElevation = 8.dp,
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(60.dp)
+                    .padding(4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                AppSection.entries.forEach { section ->
+                    val selected = selectedSection == section
+                    val foreground = if (selected) {
+                        MaterialTheme.colorScheme.onPrimaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.72f)
+                    }
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(52.dp)
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(
+                                if (selected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
+                            )
+                            .selectable(
+                                selected = selected,
+                                onClick = { onSectionSelected(section) },
+                                role = Role.Tab,
+                            ),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center,
+                    ) {
+                        Icon(
+                            imageVector = section.icon(),
+                            contentDescription = null,
+                            tint = foreground,
+                            modifier = Modifier.size(21.dp),
+                        )
+                        Text(
+                            text = section.label(),
+                            modifier = Modifier.padding(top = 1.dp),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+                            color = foreground,
+                        )
+                    }
+                }
+            }
         }
     }
 }

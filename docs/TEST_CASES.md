@@ -39,7 +39,7 @@
 |---|---|---|---|
 | JVM 단위 | `TC-DATE-001`, `003`, `004`, `005`, `006`, `007`, `009` | `FoodItemTest`, `EstimateConsumeDateUseCaseTest`, `GetRescueQueueUseCaseTest` | `AUTOMATED` |
 | JVM 단위 | `TC-QUEUE-001`, `002`, `TC-QTY-001`, `002` | `FoodItemTest`, `GetRescueQueueUseCaseTest` | `AUTOMATED` |
-| Compose UI | `TC-UI-005`, `006`, `009` | `RescueScreenTest` | `AUTOMATED` |
+| Compose UI | `TC-UI-005`, `006`, `009`, `011` | `RescueScreenTest` | `AUTOMATED` |
 | JVM 단위 | `TC-EDITOR-001~006` | `SaveFoodItemUseCaseTest` | `AUTOMATED` |
 | Room DAO | `TC-DATA-010~012` | `FoodItemDaoTest` | `AUTOMATED` |
 | Compose UI | `TC-EDITOR-007`, `008` | `RescueScreenTest` | `AUTOMATED` |
@@ -71,9 +71,9 @@
 | Room 마이그레이션·Compose UI | `TC-DATA-017`, `TC-BARCODE-007`, `TC-INTAKE-013` | `DatabaseMigrationTest`, `RescueScreenTest` | `AUTOMATED` |
 | JVM·Room·Compose UI | `TC-PRIVACY-004`, `005` 전체 삭제 | `SharedIntakeCacheCleanerTest`, `DataDeletionManagerTest`, `RescueScreenTest` | `AUTOMATED` |
 
-- 자동 테스트: 100개
+- 자동 테스트: 101개
 - 최근 검증 환경: `FridgeRescue_API_36`, Android API 36
-- 최근 결과: 앱·서버 JVM 52개 통과, Room·Intent·Compose 계측 48개 통과
+- 최근 결과: 앱·서버 JVM 52개 통과, Room·Intent·Compose 계측 49개 통과
 
 ## 3. 자동화 계층
 
@@ -228,6 +228,7 @@
 | `TC-UI-008` | `A-08` | 저장하지 않은 초안 존재 | 시스템 뒤로 가기 | 초안 보존 여부를 안내 | P0 |
 | `TC-UI-009` | 빈 상태 | 저장된 식재료 없음 | 홈 표시 | 오류 화면이 아닌 공유·직접 입력 시작 행동 표시 | P1 |
 | `TC-UI-010` | 오류 상태 | 저장 공간 부족 | 저장 시도 | 사용자 메시지와 안전한 재시도 경로 표시 | P0 |
+| `TC-UI-011` | 앱 탐색 | 홈 화면 표시 | 리포트 탭 선택 | 탭에 접근 가능한 이름이 있고 선택 섹션 변경을 전달 | P0 |
 
 ## 9. 알림과 백그라운드 테스트
 
