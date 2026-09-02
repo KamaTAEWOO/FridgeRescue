@@ -77,9 +77,9 @@ class RescueScreenTest {
 
         setScreen(state)
 
-        composeRule.onNodeWithTag(PantryFilterTestTags.LIST).performScrollToIndex(4)
+        composeRule.onNodeWithTag(PantryFilterTestTags.LIST).performScrollToIndex(2)
         composeRule.onNodeWithText("제품 표시일 · 9월 2일").assertIsDisplayed()
-        composeRule.onNodeWithTag(PantryFilterTestTags.LIST).performScrollToIndex(5)
+        composeRule.onNodeWithTag(PantryFilterTestTags.LIST).performScrollToIndex(3)
         composeRule.onNodeWithText("앱 예상 소비일 · 9월 4일").assertIsDisplayed()
     }
 
@@ -101,7 +101,7 @@ class RescueScreenTest {
                 RescueRoute(viewModel = viewModel)
             }
         }
-        composeRule.onNodeWithTag(PantryFilterTestTags.LIST).performScrollToIndex(4)
+        composeRule.onNodeWithTag(PantryFilterTestTags.LIST).performScrollToIndex(2)
         composeRule.onNodeWithText("먹었어요").performClick()
         composeRule.waitUntil(timeoutMillis = 10_000) {
             runBlocking { repository.findById(foodItem.id)?.status == FoodStatus.CONSUMED }
@@ -111,7 +111,7 @@ class RescueScreenTest {
         composeRule.waitUntil(timeoutMillis = 10_000) {
             runBlocking { repository.findById(foodItem.id)?.status == FoodStatus.ACTIVE }
         }
-        composeRule.onNodeWithTag(PantryFilterTestTags.LIST).performScrollToIndex(4)
+        composeRule.onNodeWithTag(PantryFilterTestTags.LIST).performScrollToIndex(2)
         composeRule.onNodeWithText("시금치").assertIsDisplayed()
     }
 
@@ -129,7 +129,7 @@ class RescueScreenTest {
         )
         setRoute(viewModel)
 
-        composeRule.onNodeWithTag(PantryFilterTestTags.LIST).performScrollToIndex(4)
+        composeRule.onNodeWithTag(PantryFilterTestTags.LIST).performScrollToIndex(2)
         composeRule.onNodeWithText("관리").performClick()
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText("아직 있어요").fetchSemanticsNodes().isNotEmpty()
@@ -145,7 +145,7 @@ class RescueScreenTest {
     fun TC_UI_009_empty_queue_shows_next_step_guidance() {
         setScreen(contentState())
 
-        composeRule.onNodeWithTag(PantryFilterTestTags.LIST).performScrollToIndex(4)
+        composeRule.onNodeWithTag(PantryFilterTestTags.LIST).performScrollToIndex(2)
         composeRule.onNodeWithText("지금 구조할 재료가 없어요").assertIsDisplayed()
         composeRule.onNodeWithText("재료 추가를 눌러 첫 식재료를 담아보세요.")
             .assertIsDisplayed()
@@ -161,7 +161,7 @@ class RescueScreenTest {
 
         setScreen(contentState(item), notificationsEnabled = false)
 
-        composeRule.onNodeWithText("곧 확인 1").assertIsDisplayed()
+        composeRule.onNodeWithText("곧 확인 1 · 날짜 확인 0").assertIsDisplayed()
         composeRule.onNodeWithText("요약 알림 켜기").assertIsDisplayed()
     }
 
@@ -226,7 +226,7 @@ class RescueScreenTest {
             ),
         )
 
-        composeRule.onNodeWithTag(PantryFilterTestTags.LIST).performScrollToIndex(4)
+        composeRule.onNodeWithTag(PantryFilterTestTags.LIST).performScrollToIndex(2)
         composeRule.onNodeWithText("제품 표시일 · 8월 31일").assertIsDisplayed()
         composeRule.onNodeWithText("기한 1일 지남").assertIsDisplayed()
         composeRule.onNodeWithText("냉장 · 1개 · 개봉").assertIsDisplayed()
@@ -384,9 +384,9 @@ class RescueScreenTest {
         composeRule.waitUntil(timeoutMillis = 5_000) {
             runBlocking { foodRepository.foodItems.first().size == 2 }
         }
-        composeRule.onNodeWithTag(PantryFilterTestTags.LIST).performScrollToIndex(4)
+        composeRule.onNodeWithTag(PantryFilterTestTags.LIST).performScrollToIndex(2)
         composeRule.onNodeWithText("두부").assertIsDisplayed()
-        composeRule.onNodeWithTag(PantryFilterTestTags.LIST).performScrollToIndex(5)
+        composeRule.onNodeWithTag(PantryFilterTestTags.LIST).performScrollToIndex(3)
         composeRule.onNodeWithText("시금치").assertIsDisplayed()
     }
 
@@ -398,7 +398,7 @@ class RescueScreenTest {
         )
         setRoute(viewModel)
 
-        composeRule.onNodeWithText("구매내역 가져오기").performClick()
+        composeRule.onNodeWithText("재료 추가").performClick()
         composeRule.onNodeWithText("종이 영수증 촬영").assertIsDisplayed()
         composeRule.onNodeWithText("사진에서 선택").assertIsDisplayed()
         composeRule.onNodeWithText("일반·GS1 바코드 스캔").assertIsDisplayed()
@@ -466,6 +466,7 @@ class RescueScreenTest {
         setRoute(viewModel)
 
         composeRule.onNodeWithText("재료 추가").performClick()
+        composeRule.onNodeWithText("직접 입력").performClick()
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithTag(FoodEditorTestTags.NAME).fetchSemanticsNodes().isNotEmpty()
         }
@@ -480,7 +481,7 @@ class RescueScreenTest {
         composeRule.waitUntil(timeoutMillis = 5_000) {
             runBlocking { repository.foodItems.first().size == 1 }
         }
-        composeRule.onNodeWithTag(PantryFilterTestTags.LIST).performScrollToIndex(4)
+        composeRule.onNodeWithTag(PantryFilterTestTags.LIST).performScrollToIndex(2)
         composeRule.onNodeWithText("직접 확인한 날짜 · 9월 3일").assertIsDisplayed()
         assertEquals(
             StorageLocation.FROZEN,
@@ -502,7 +503,7 @@ class RescueScreenTest {
         )
         setRoute(viewModel)
 
-        composeRule.onNodeWithTag(PantryFilterTestTags.LIST).performScrollToIndex(4)
+        composeRule.onNodeWithTag(PantryFilterTestTags.LIST).performScrollToIndex(2)
         composeRule.onNodeWithText("관리").performClick()
         composeRule.onNodeWithText("정보 수정").performClick()
         composeRule.waitUntil(timeoutMillis = 5_000) {
@@ -543,19 +544,19 @@ class RescueScreenTest {
         composeRule.onNodeWithTag(PantryFilterTestTags.TOGGLE).performClick()
         composeRule.onNodeWithTag(PantryFilterTestTags.SEARCH).performTextInput("두부")
 
-        composeRule.onNodeWithTag(PantryFilterTestTags.LIST).performScrollToIndex(4)
+        composeRule.onNodeWithTag(PantryFilterTestTags.LIST).performScrollToIndex(2)
         composeRule.onAllNodesWithText("두부").assertCountEquals(2)
         composeRule.onAllNodesWithText("우유").assertCountEquals(0)
 
         composeRule.onNodeWithTag(PantryFilterTestTags.SEARCH).performTextReplacement("없는 재료")
-        composeRule.onNodeWithTag(PantryFilterTestTags.LIST).performScrollToIndex(4)
+        composeRule.onNodeWithTag(PantryFilterTestTags.LIST).performScrollToIndex(2)
         composeRule.onNodeWithText("조건에 맞는 재료가 없어요").assertIsDisplayed()
         composeRule.onNodeWithTag(PantryFilterTestTags.CLEAR).performClick()
 
         composeRule.waitForIdle()
-        composeRule.onNodeWithTag(PantryFilterTestTags.LIST).performScrollToIndex(4)
+        composeRule.onNodeWithTag(PantryFilterTestTags.LIST).performScrollToIndex(2)
         composeRule.onNodeWithText("두부").assertIsDisplayed()
-        composeRule.onNodeWithTag(PantryFilterTestTags.LIST).performScrollToIndex(5)
+        composeRule.onNodeWithTag(PantryFilterTestTags.LIST).performScrollToIndex(3)
         composeRule.onNodeWithText("우유").assertIsDisplayed()
     }
 

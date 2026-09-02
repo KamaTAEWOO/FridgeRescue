@@ -286,14 +286,9 @@ private fun LazyListScope.overviewItems(
 ) {
     item {
         RescueHeader(
-            onImport = { onAction(RescueAction.OpenImportOptions) },
-            onAddFood = { onAction(RescueAction.StartAddFood) },
-        )
-    }
-    item {
-        SummaryBar(
             urgentCount = uiState.urgentCount,
             needsReviewCount = uiState.needsReviewCount,
+            onImport = { onAction(RescueAction.OpenImportOptions) },
         )
     }
     if (uiState.urgentCount > 0 && !notificationsEnabled) {
@@ -306,26 +301,12 @@ private fun LazyListScope.queueItems(
     onAction: (RescueAction) -> Unit,
 ) {
     item {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 6.dp),
-            verticalAlignment = Alignment.Bottom,
-            horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
-            Text(
-                text = stringResource(R.string.pantry_title),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-            )
-            Text(
-                text = stringResource(R.string.pantry_count, uiState.totalItemCount),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
+        PantryFilterPanel(
+            totalItemCount = uiState.totalItemCount,
+            filter = uiState.pantryFilter,
+            onAction = onAction,
+        )
     }
-    item { PantryFilterPanel(uiState.pantryFilter, onAction) }
     if (uiState.items.isEmpty()) {
         item {
             if (uiState.totalItemCount > 0 && uiState.pantryFilter.isActive) {
@@ -355,6 +336,7 @@ object PantryFilterTestTags {
 
 @Composable
 private fun PantryFilterPanel(
+    totalItemCount: Int,
     filter: com.portfolio.fridgerescue.feature.rescue.domain.PantryFilter,
     onAction: (RescueAction) -> Unit,
 ) {
@@ -363,22 +345,29 @@ private fun PantryFilterPanel(
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.End,
+            horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            if (filter.isActive) {
-                TextButton(onClick = { onAction(RescueAction.ClearPantryFilters) }) {
-                    Text(stringResource(R.string.pantry_filter_clear))
+            Text(
+                text = stringResource(R.string.pantry_title_count, totalItemCount),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (filter.isActive) {
+                    TextButton(onClick = { onAction(RescueAction.ClearPantryFilters) }) {
+                        Text(stringResource(R.string.pantry_filter_clear))
+                    }
                 }
-            }
-            androidx.compose.material3.OutlinedButton(
-                onClick = { expanded = !expanded },
-                modifier = Modifier.testTag(PantryFilterTestTags.TOGGLE),
-            ) {
-                Text(
-                    stringResource(
-                        if (expanded) R.string.pantry_filter_close else R.string.pantry_filter_open,
-                    ),
-                )
+                TextButton(
+                    onClick = { expanded = !expanded },
+                    modifier = Modifier.testTag(PantryFilterTestTags.TOGGLE),
+                ) {
+                    Text(
+                        stringResource(
+                            if (expanded) R.string.pantry_filter_close else R.string.pantry_filter_open,
+                        ),
+                    )
+                }
             }
         }
         if (!expanded) return@Column
@@ -504,7 +493,11 @@ private fun NotificationPermissionCard(onRequestPermission: () -> Unit) {
 }
 
 @Composable
-private fun RescueHeader(onImport: () -> Unit, onAddFood: () -> Unit) {
+private fun RescueHeader(
+    urgentCount: Int,
+    needsReviewCount: Int,
+    onImport: () -> Unit,
+) {
     Column {
         Text(
             text = stringResource(R.string.rescue_eyebrow),
@@ -519,70 +512,24 @@ private fun RescueHeader(onImport: () -> Unit, onAddFood: () -> Unit) {
             fontWeight = FontWeight.Black,
         )
         Text(
-            text = stringResource(R.string.rescue_subtitle),
+            text = stringResource(
+                R.string.rescue_summary_sentence,
+                urgentCount,
+                needsReviewCount,
+            ),
             modifier = Modifier.padding(top = 3.dp),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        Row(
+        androidx.compose.material3.Button(
+            onClick = onImport,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 12.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            androidx.compose.material3.Button(
-                onClick = onImport,
-                modifier = Modifier.weight(1.45f),
-            ) {
-                Text(
-                    text = stringResource(R.string.rescue_import),
-                    fontWeight = FontWeight.Bold,
-                )
-            }
-            androidx.compose.material3.OutlinedButton(
-                onClick = onAddFood,
-                modifier = Modifier.weight(1f),
-            ) {
-                Text(
-                    text = stringResource(R.string.rescue_add_food),
-                    fontWeight = FontWeight.Bold,
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun SummaryBar(
-    urgentCount: Int,
-    needsReviewCount: Int,
-) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.surface,
-        shape = RoundedCornerShape(16.dp),
-        tonalElevation = 1.dp,
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Text(
-                text = stringResource(R.string.rescue_today_summary),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Text(
-                text = stringResource(R.string.rescue_urgent_summary, urgentCount),
-                modifier = Modifier.weight(1f),
-                style = MaterialTheme.typography.bodyMedium,
+                text = stringResource(R.string.rescue_add_food),
                 fontWeight = FontWeight.Bold,
-            )
-            Text(
-                text = stringResource(R.string.rescue_review_summary, needsReviewCount),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }

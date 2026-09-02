@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="docs/assets/fridge-rescue-demo.mp4">13초 원본 데모 영상</a>
+  <a href="docs/assets/fridge-rescue-demo.mp4">10초 원본 데모 영상</a>
 </p>
 
 ## 해결하려는 문제
