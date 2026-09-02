@@ -3,7 +3,6 @@ package com.portfolio.fridgerescue.feature.rescue.components
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -16,11 +15,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -34,27 +31,16 @@ import com.portfolio.fridgerescue.feature.rescue.domain.RescueUrgency
 @Composable
 fun FoodRescueCard(
     queueItem: RescueQueueItem,
-    onEdit: () -> Unit,
     onOpenActions: () -> Unit,
     onMarkConsumed: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val emphasized = queueItem.urgency == RescueUrgency.OVERDUE ||
         queueItem.urgency == RescueUrgency.TODAY
-    val containerColor = if (emphasized) {
-        lerp(
-            MaterialTheme.colorScheme.surface,
-            MaterialTheme.colorScheme.primaryContainer,
-            0.62f,
-        )
-    } else {
-        MaterialTheme.colorScheme.surface
-    }
-
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = containerColor),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         border = BorderStroke(
             width = 1.dp,
             color = if (emphasized) {
@@ -94,38 +80,21 @@ fun FoodRescueCard(
                 UrgencyBadge(queueItem)
             }
 
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                MetadataBadge(queueItem.foodItem.storageLocation.label())
-                queueItem.foodItem.quantity?.let {
-                    MetadataBadge(stringResource(R.string.food_quantity_format, it))
-                }
-                if (queueItem.foodItem.isOpened) {
-                    MetadataBadge(stringResource(R.string.food_opened))
-                }
-                if (queueItem.foodItem.isPinned) {
-                    MetadataBadge(stringResource(R.string.food_pinned))
-                }
-            }
+            Text(
+                text = queueItem.metadataDescription(),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                TextButton(
-                    onClick = onEdit,
-                    modifier = Modifier.weight(0.9f),
-                ) {
-                    Text(
-                        text = stringResource(R.string.rescue_edit_food),
-                        fontWeight = FontWeight.Bold,
-                    )
-                }
                 OutlinedButton(
                     onClick = onOpenActions,
-                    modifier = Modifier.weight(1.2f),
+                    modifier = Modifier.weight(1f),
                 ) {
                     Text(
                         text = stringResource(R.string.rescue_more_actions),
@@ -134,7 +103,7 @@ fun FoodRescueCard(
                 }
                 Button(
                     onClick = onMarkConsumed,
-                    modifier = Modifier.weight(1.4f),
+                    modifier = Modifier.weight(1.3f),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary,
                     ),
@@ -168,7 +137,11 @@ private fun UrgencyBadge(queueItem: RescueQueueItem) {
     }
 
     Surface(
-        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.82f),
+        color = if (queueItem.urgency == RescueUrgency.OVERDUE || queueItem.urgency == RescueUrgency.TODAY) {
+            MaterialTheme.colorScheme.primaryContainer
+        } else {
+            MaterialTheme.colorScheme.surfaceVariant
+        },
         shape = RoundedCornerShape(999.dp),
     ) {
         Text(
@@ -181,18 +154,13 @@ private fun UrgencyBadge(queueItem: RescueQueueItem) {
 }
 
 @Composable
-private fun MetadataBadge(label: String) {
-    Surface(
-        color = MaterialTheme.colorScheme.surfaceVariant,
-        shape = RoundedCornerShape(999.dp),
-    ) {
-        Text(
-            text = label,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
+private fun RescueQueueItem.metadataDescription(): String {
+    val storage = foodItem.storageLocation.label()
+    val quantity = foodItem.quantity?.let { stringResource(R.string.food_quantity_format, it) }
+    val opened = if (foodItem.isOpened) stringResource(R.string.food_opened) else null
+    val pinned = if (foodItem.isPinned) stringResource(R.string.food_pinned) else null
+    val labels = listOfNotNull(storage, quantity, opened, pinned)
+    return labels.joinToString(separator = " · ")
 }
 
 @Composable

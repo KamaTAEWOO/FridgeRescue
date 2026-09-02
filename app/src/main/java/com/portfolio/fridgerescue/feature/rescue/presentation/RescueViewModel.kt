@@ -292,7 +292,10 @@ class RescueViewModel(
                 showImportOptions.value = false
                 editorState.value = FoodEditorUiState()
             }
-            is RescueAction.StartEditFood -> startEdit(action.foodItemId)
+            is RescueAction.StartEditFood -> {
+                detailSelection.value = null
+                startEdit(action.foodItemId)
+            }
             RescueAction.DismissEditor -> editorState.value = null
             is RescueAction.ChangeEditorName -> updateEditor { copy(name = action.value) }
             is RescueAction.ChangeEditorQuantity -> updateEditor { copy(quantity = action.value) }

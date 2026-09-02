@@ -1,17 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">냉장고 구조대</string>
-    <string name="rescue_eyebrow">오늘의 구조</string>
-    <string name="rescue_title">먼저 먹으면 좋은 재료</string>
-    <string name="rescue_subtitle">버리기 전에 한 번만 확인해요</string>
+    <string name="rescue_eyebrow">냉장고 구조대</string>
+    <string name="rescue_title">오늘 먼저 볼 재료</string>
+    <string name="rescue_subtitle">날짜가 가까운 순서로 모았어요</string>
     <string name="rescue_storage_badge">기기 저장 · 오프라인 사용</string>
     <string name="rescue_urgent_label">곧 확인해요</string>
     <string name="rescue_needs_review_label">날짜 확인 필요</string>
     <string name="rescue_count_format">%1$d개</string>
+    <string name="rescue_today_summary">오늘</string>
+    <string name="rescue_urgent_summary">곧 확인 %1$d</string>
+    <string name="rescue_review_summary">날짜 확인 %1$d</string>
     <string name="rescue_queue_title">구조 큐</string>
     <string name="rescue_queue_description">임박도와 개봉 여부를 기준으로 정렬했어요</string>
+    <string name="pantry_title">냉장고 재료</string>
+    <string name="pantry_count">전체 %1$d개</string>
     <string name="pantry_search_label">재료 검색</string>
     <string name="pantry_search_placeholder">이름으로 찾아보세요</string>
+    <string name="pantry_filter_open">검색·필터</string>
+    <string name="pantry_filter_close">접기</string>
     <string name="filter_all">전체 위치</string>
     <string name="filter_status_all">전체 상태</string>
     <string name="filter_status_active">관리 중</string>
@@ -28,7 +35,8 @@
     <string name="intake_candidate_displayed_date">제품 표시일 후보 %1$s</string>
     <string name="rescue_add_food">재료 추가</string>
     <string name="rescue_edit_food">수정</string>
-    <string name="rescue_more_actions">다른 처리</string>
+    <string name="rescue_edit_food_details">정보 수정</string>
+    <string name="rescue_more_actions">관리</string>
     <string name="rescue_mark_consumed">먹었어요</string>
     <string name="rescue_undo">실행 취소</string>
     <string name="rescue_consumed_message">%1$s을(를) 먹음 처리했어요</string>
@@ -128,8 +136,8 @@
     <string name="notification_channel_name">임박 식재료 요약</string>
     <string name="notification_channel_description">오늘 확인할 식재료를 하루 한 번 요약해 알려줘요.</string>
     <string name="notification_title">확인할 식재료 %1$d개가 있어요</string>
-    <string name="notification_permission_title">홈에서도 계속 확인할 수 있어요</string>
-    <string name="notification_permission_description">알림을 켜면 임박 식재료를 하루 한 번만 요약해 알려드려요. 거부해도 이 배지는 계속 보여요.</string>
+    <string name="notification_permission_title">임박 알림 받기</string>
+    <string name="notification_permission_description">하루 한 번만 요약해요.</string>
     <string name="notification_permission_action">요약 알림 켜기</string>
     <string name="nav_home">구조</string>
     <string name="nav_report">리포트</string>

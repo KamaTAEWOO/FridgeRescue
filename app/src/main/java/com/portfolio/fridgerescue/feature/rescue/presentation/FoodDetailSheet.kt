@@ -16,6 +16,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.ui.Modifier
@@ -42,7 +43,20 @@ fun FoodDetailSheet(state: FoodDetailUiState, onAction: (RescueAction) -> Unit) 
                 .padding(horizontal = 20.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            Text(state.foodItem.name, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Text(
+                    state.foodItem.name,
+                    modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                )
+                TextButton(onClick = { onAction(RescueAction.StartEditFood(state.foodItem.id)) }) {
+                    Text(stringResource(R.string.rescue_edit_food_details))
+                }
+            }
             Text(
                 stringResource(R.string.action_sheet_description),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,

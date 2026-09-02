@@ -130,7 +130,7 @@ class RescueScreenTest {
         setRoute(viewModel)
 
         composeRule.onNodeWithTag(PantryFilterTestTags.LIST).performScrollToIndex(4)
-        composeRule.onNodeWithText("다른 처리").performClick()
+        composeRule.onNodeWithText("관리").performClick()
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText("아직 있어요").fetchSemanticsNodes().isNotEmpty()
         }
@@ -161,7 +161,7 @@ class RescueScreenTest {
 
         setScreen(contentState(item), notificationsEnabled = false)
 
-        composeRule.onNodeWithText("1개").assertIsDisplayed()
+        composeRule.onNodeWithText("곧 확인 1").assertIsDisplayed()
         composeRule.onNodeWithText("요약 알림 켜기").assertIsDisplayed()
     }
 
@@ -229,9 +229,29 @@ class RescueScreenTest {
         composeRule.onNodeWithTag(PantryFilterTestTags.LIST).performScrollToIndex(4)
         composeRule.onNodeWithText("제품 표시일 · 8월 31일").assertIsDisplayed()
         composeRule.onNodeWithText("기한 1일 지남").assertIsDisplayed()
-        composeRule.onAllNodesWithText("1개").assertCountEquals(2)
-        composeRule.onNodeWithText("개봉").assertIsDisplayed()
-        composeRule.onNodeWithText("다른 처리").assertIsDisplayed()
+        composeRule.onNodeWithText("냉장 · 1개 · 개봉").assertIsDisplayed()
+        composeRule.onNodeWithText("관리").assertIsDisplayed()
+    }
+
+    @Test
+    fun TC_UI_013_search_filters_are_collapsed_until_requested() {
+        setScreen(
+            contentState(
+                foodItem(
+                    id = "filter-visibility",
+                    name = "두부",
+                    date = FoodDate(today.plusDays(1), FoodDateSource.APP_ESTIMATED),
+                ),
+            ),
+        )
+
+        composeRule.onNodeWithText("검색·필터").assertIsDisplayed()
+        composeRule.onAllNodesWithTag(PantryFilterTestTags.SEARCH).assertCountEquals(0)
+
+        composeRule.onNodeWithTag(PantryFilterTestTags.TOGGLE).performClick()
+
+        composeRule.onNodeWithTag(PantryFilterTestTags.SEARCH).assertIsDisplayed()
+        composeRule.onNodeWithText("접기").assertIsDisplayed()
     }
 
     @Test
@@ -483,7 +503,8 @@ class RescueScreenTest {
         setRoute(viewModel)
 
         composeRule.onNodeWithTag(PantryFilterTestTags.LIST).performScrollToIndex(4)
-        composeRule.onNodeWithText("수정").performClick()
+        composeRule.onNodeWithText("관리").performClick()
+        composeRule.onNodeWithText("정보 수정").performClick()
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithTag(FoodEditorTestTags.NAME).fetchSemanticsNodes().isNotEmpty()
         }
@@ -519,6 +540,7 @@ class RescueScreenTest {
             ),
         )
 
+        composeRule.onNodeWithTag(PantryFilterTestTags.TOGGLE).performClick()
         composeRule.onNodeWithTag(PantryFilterTestTags.SEARCH).performTextInput("두부")
 
         composeRule.onNodeWithTag(PantryFilterTestTags.LIST).performScrollToIndex(4)
