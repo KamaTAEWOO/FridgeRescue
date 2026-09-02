@@ -1,7 +1,7 @@
 package com.portfolio.fridgerescue.feature.rescue.domain
 
-import com.portfolio.fridgerescue.core.model.FoodStatus
-import com.portfolio.fridgerescue.core.model.StorageLocation
+import com.portfolio.fridgerescue.core.domain.model.FoodStatus
+import com.portfolio.fridgerescue.core.domain.model.StorageLocation
 
 enum class PantryStatusFilter { ALL, ACTIVE, NEEDS_REVIEW }
 

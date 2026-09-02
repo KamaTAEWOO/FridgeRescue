@@ -33,18 +33,16 @@ WorkManager로 D-3, D-1, 당일 후보를 하루 한 번 요약한다. 조용한
 ## 아키텍처
 
 ```text
-Compose UI
-   ↓ action                 ↑ immutable state
-Hilt → ViewModel / UseCase / Coroutine·Flow
-   ↓
-Repository
-   ├─ Room: 재료·행동·가져오기 초안
-   ├─ DataStore: 알림 설정
-   ├─ 앱 전용 캐시: 공유 파일
-   └─ WorkManager: 만료 알림
+app/di(Hilt composition root)
+       ├──────────────┐
+       ↓              ↓
+presentation ───→ domain ←─── data
+Compose·ViewModel   Model       Room·DataStore
+StateFlow·Action    UseCase     ML Kit·HTTP
+                    Repository 계약
 ```
 
-UI는 이벤트를 `RescueAction`으로 전달하고 ViewModel이 `StateFlow` 상태와 단발성 `Flow` 이벤트를 만든다. Hilt가 Room, Repository, UseCase를 같은 그래프에서 제공하므로 Application의 수동 컨테이너와 ViewModel Factory를 제거했다. `viewModelScope`의 코루틴으로 저장·동기화 작업을 구조화했고 Worker와 알림 Receiver도 같은 Repository를 주입받는다. 날짜 추정, 구조 우선순위, 후보 저장, 중복 탐지, 알림 후보 계산은 별도 사용 사례로 분리해 JVM에서 빠르게 검증했다.
+UI는 이벤트를 `RescueAction`으로 전달하고 ViewModel이 `StateFlow` 상태와 단발성 `Flow` 이벤트를 만든다. Repository·동기화·설정 계약은 Android를 모르는 `domain`에, Room·DataStore·ML Kit·HTTP 구현은 `data`에 둔다. Hilt 조립은 `app/di`에만 모아 `presentation → domain ← data` 방향을 유지한다. `CleanArchitectureDependencyTest`가 domain의 Android/data/presentation 참조와 presentation의 data 직접 참조를 CI에서 차단한다. `viewModelScope`의 코루틴으로 저장·동기화 작업을 구조화했고 Worker와 알림 Receiver도 같은 도메인 계약을 주입받는다.
 
 홈은 임박 요약을 제목 아래 한 문장으로 줄이고 모든 등록 경로를 `재료 추가` 하나로 합쳤다. 재료 수와 검색·필터도 한 줄로 묶고 필터는 기본 접힘 상태로 두어 첫 화면에서 실제 재료 세 개까지 보이게 했다. 카드의 반복 배지는 문장형 메타데이터로 합치고 `관리`, `먹었어요` 두 행동만 노출했다. 하단 탐색은 중립 배경과 선택 탭 강조만 남겨 콘텐츠와 경쟁하지 않게 했다.
 
@@ -52,7 +50,7 @@ UI는 이벤트를 `RescueAction`으로 전달하고 ViewModel이 `StateFlow` �
 
 ## 품질 전략
 
-- 앱·서버 JVM 테스트 52개로 파서·정렬·중복·날짜·멱등성·리포트·서버 API·데모 픽스처 규칙 검증
+- 앱·서버 JVM 테스트 55개로 파서·정렬·중복·날짜·멱등성·리포트·서버 API·데모 픽스처와 Clean Architecture 의존 규칙 검증
 - 계측 테스트 52개로 Hilt 앱 그래프·Room 마이그레이션·공유 Intent·Compose·카드 문구·접이식 필터·탭 탐색·가족 스냅샷 병합·데모 시드 멱등성 검증
 - API 26/36 전체 테스트, 실제 TalkBack 서비스, 재부팅·Doze·절전 QA
 - Release에서 R8·리소스 축소·외부 키 서명 및 APK/AAB 서명 검증

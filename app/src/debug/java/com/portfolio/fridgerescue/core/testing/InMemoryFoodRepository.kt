@@ -1,14 +1,14 @@
 package com.portfolio.fridgerescue.core.testing
 
-import com.portfolio.fridgerescue.core.data.repository.FoodRepository
-import com.portfolio.fridgerescue.core.model.FoodActionRequest
-import com.portfolio.fridgerescue.core.model.FoodActionType
-import com.portfolio.fridgerescue.core.model.FoodEvent
-import com.portfolio.fridgerescue.core.model.FoodEventType
-import com.portfolio.fridgerescue.core.model.FoodItem
-import com.portfolio.fridgerescue.core.model.FoodItemId
-import com.portfolio.fridgerescue.core.model.FoodMutationResult
-import com.portfolio.fridgerescue.core.model.FoodStatus
+import com.portfolio.fridgerescue.core.domain.repository.FoodRepository
+import com.portfolio.fridgerescue.core.domain.model.FoodActionRequest
+import com.portfolio.fridgerescue.core.domain.model.FoodActionType
+import com.portfolio.fridgerescue.core.domain.model.FoodEvent
+import com.portfolio.fridgerescue.core.domain.model.FoodEventType
+import com.portfolio.fridgerescue.core.domain.model.FoodItem
+import com.portfolio.fridgerescue.core.domain.model.FoodItemId
+import com.portfolio.fridgerescue.core.domain.model.FoodMutationResult
+import com.portfolio.fridgerescue.core.domain.model.FoodStatus
 import java.time.Instant
 import java.util.UUID
 import kotlinx.coroutines.flow.Flow

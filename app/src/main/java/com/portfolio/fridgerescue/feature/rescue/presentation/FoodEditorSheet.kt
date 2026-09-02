@@ -31,7 +31,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.portfolio.fridgerescue.R
-import com.portfolio.fridgerescue.core.model.StorageLocation
+import com.portfolio.fridgerescue.core.domain.model.StorageLocation
 import com.portfolio.fridgerescue.feature.rescue.domain.FoodItemDraftError
 
 @OptIn(ExperimentalMaterial3Api::class)

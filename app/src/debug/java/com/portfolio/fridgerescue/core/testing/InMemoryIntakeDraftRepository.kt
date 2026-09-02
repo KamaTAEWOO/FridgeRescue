@@ -1,9 +1,9 @@
 package com.portfolio.fridgerescue.core.testing
 
-import com.portfolio.fridgerescue.core.data.repository.IntakeDraftRepository
-import com.portfolio.fridgerescue.core.model.IntakeCandidate
-import com.portfolio.fridgerescue.core.model.IntakeDraft
-import com.portfolio.fridgerescue.core.model.IntakeDraftStatus
+import com.portfolio.fridgerescue.core.domain.repository.IntakeDraftRepository
+import com.portfolio.fridgerescue.core.domain.model.IntakeCandidate
+import com.portfolio.fridgerescue.core.domain.model.IntakeDraft
+import com.portfolio.fridgerescue.core.domain.model.IntakeDraftStatus
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow

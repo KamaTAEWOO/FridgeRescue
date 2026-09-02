@@ -1,12 +1,12 @@
 package com.portfolio.fridgerescue.feature.rescue.presentation
 
-import com.portfolio.fridgerescue.core.model.FoodActionType
-import com.portfolio.fridgerescue.core.model.FoodEvent
-import com.portfolio.fridgerescue.core.model.FoodItem
-import com.portfolio.fridgerescue.core.model.FoodItemId
-import com.portfolio.fridgerescue.core.model.IntakeDraft
-import com.portfolio.fridgerescue.core.model.IntakeCandidate
-import com.portfolio.fridgerescue.core.model.StorageLocation
+import com.portfolio.fridgerescue.core.domain.model.FoodActionType
+import com.portfolio.fridgerescue.core.domain.model.FoodEvent
+import com.portfolio.fridgerescue.core.domain.model.FoodItem
+import com.portfolio.fridgerescue.core.domain.model.FoodItemId
+import com.portfolio.fridgerescue.core.domain.model.IntakeDraft
+import com.portfolio.fridgerescue.core.domain.model.IntakeCandidate
+import com.portfolio.fridgerescue.core.domain.model.StorageLocation
 import com.portfolio.fridgerescue.feature.rescue.domain.FoodItemDraftError
 import com.portfolio.fridgerescue.feature.rescue.domain.RescueQueueItem
 import com.portfolio.fridgerescue.feature.rescue.domain.PantryFilter

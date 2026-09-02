@@ -14,14 +14,14 @@
 | 냉장고 | Room 스키마 v5, 날짜 출처, 수량·보관 위치, 추가·수정, 검색·위치·상태 필터, 구조 큐 | DAO·마이그레이션·UI |
 | 행동 이력 | 먹음·아직 있음·일부 사용·버림, 폐기 사유, 멱등키, 실행 취소 | 트랜잭션·UI |
 | 알림 | D-3·D-1·당일 요약, 직접 행동, 홈 배지, 22~08시 조용한 시간 | 규칙 단위·권한 UI |
-| 아키텍처 | Hilt 의존성 그래프, ViewModel·Coroutine·StateFlow UDF, Worker·Receiver 주입 | KSP 컴파일·전체 회귀 테스트 |
+| 아키텍처 | `presentation → domain ← data` Clean Architecture, Hilt 조립 지점, ViewModel·Coroutine·StateFlow UDF, Worker·Receiver 주입 | 계층 의존 규칙 단위 테스트·KSP 컴파일·전체 회귀 테스트 |
 | 리포트 | 구조·폐기 건수, 금액 미추정 원칙, 반복 폐기 힌트 | 단위·UI |
 | 완성도 | 접이식 검색·필터, 단순화한 카드 행동, 중립 하단 탐색, 다크 모드, 넓은 화면 2열, 24시간 캐시 정리, 확인 후 전체 로컬 데이터 삭제, CI | Lint·Room·Compose UI·에뮬레이터 |
 | 릴리스 | R8 코드·리소스 축소, 외부 서명 설정, signed APK·AAB·mapping 산출 | `apksigner`, `jarsigner`, Release 스모크 |
 
 ## 검증 결과
 
-- 앱·서버 JVM 테스트: 52개 통과
+- 앱·서버 JVM 테스트: 55개 통과(계층 의존 규칙 3개 포함)
 - `connectedDebugAndroidTest`: 52개 통과 (`FridgeRescue_API_26`, `FridgeRescue_API_36`)
 - `lintDebug`: 오류 없음
 - `assembleDebug`: APK 생성 성공

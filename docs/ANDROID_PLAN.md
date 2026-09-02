@@ -28,22 +28,16 @@
 
 ## 3. 아키텍처 원칙
 
-Android 공식 아키텍처 권장사항을 바탕으로 UI와 데이터 계층을 분리한다.
+단일 `app` Gradle 모듈 안에서 패키지 경계로 Clean Architecture를 적용한다. 현재 규모에서는 빌드 모듈 수를 늘리는 비용보다 계층 간 계약과 테스트 가능한 의존 방향을 우선한다.
 
 ```mermaid
 flowchart TB
-    UI[Compose UI] -->|UserAction| VM[ViewModel]
-    VM -->|UiState StateFlow| UI
-    VM --> UC[Use Cases]
-    HILT[Hilt DI] --> VM
-    HILT --> UC
-    HILT --> REPO
-    HILT --> WM
-    UC --> REPO[Repositories]
-    REPO --> DB[Room DB]
-    REPO --> INTAKE[Share / ML Kit data sources]
-    REPO --> SYNC[Optional remote data source]
-    WM[WorkManager] --> REPO
+    APP[app / Hilt 조립] --> PRESENTATION[presentation / Compose·ViewModel]
+    APP --> DATA[data / Room·DataStore·ML Kit·HTTP]
+    PRESENTATION --> DOMAIN[domain / Model·UseCase·Repository 계약]
+    DATA --> DOMAIN
+    WORKER[worker / WorkManager·Receiver] --> DOMAIN
+    APP --> WORKER
 ```
 
 ### 필수 규칙
@@ -51,64 +45,56 @@ flowchart TB
 - Composable은 Repository, DAO, ML Kit, ContentResolver에 직접 접근하지 않는다.
 - 화면은 불변 `UiState`를 입력받고 `UserAction`을 상위로 전달한다.
 - ViewModel은 Android `Context`를 보관하지 않는다.
-- Repository가 로컬·외부 입력 데이터를 조정한다.
+- `domain`은 Android·`data`·`presentation`을 참조하지 않는다.
+- `presentation`은 Room·DataStore·ML Kit·HTTP 구현을 직접 참조하지 않는다.
+- Repository 인터페이스는 `domain`, 구현은 `data`에 둔다.
 - Room이 앱 데이터의 단일 진실 공급원이다.
 - UI는 네트워크나 ML 작업의 성공을 낙관적으로 단정하지 않는다.
 - Hilt의 `SingletonComponent`가 DB·Repository·설정 저장소를 한 번만 생성한다.
 - ViewModel과 Worker는 생성자가 의존성을 전달받고 Application의 서비스 로케이터를 참조하지 않는다.
+- `CleanArchitectureDependencyTest`가 금지된 패키지 의존을 CI에서 자동 검사한다.
 
-## 4. 모듈 계획
+## 4. 모듈 전략
 
-기능 구현을 시작할 때 다음 순서로 모듈을 추가한다. 비어 있는 모듈을 한꺼번에 만들지 않는다.
+현재 Android 클라이언트는 `:app`, 성능 측정은 `:benchmark`, 동기화 DTO는 `:sync-contract`, 서버는 `:server`로 구성한다.
 
 ```text
 :app
-:core:model
-:core:data
-:core:designsystem
-:core:testing
-:feature:intake
-:feature:rescue
-:feature:report
-:feature:settings
+:benchmark
+:sync-contract
+:server
 ```
 
-| 모듈 | 책임 | 의존 가능 대상 |
-|---|---|---|
-| `:app` | Activity, 앱 내비게이션, DI 조립 | 모든 feature |
-| `:core:model` | 순수 Kotlin 도메인 모델 | 없음 |
-| `:core:data` | Room, Repository, 외부 입력 어댑터 | `core:model` |
-| `:core:designsystem` | 테마와 재사용 Compose 컴포넌트 | `core:model` 선택 |
-| `:core:testing` | Fake와 테스트 fixture | `core:model`, `core:data` |
-| `:feature:intake` | 공유 수신, OCR, 선별 결과 | core 모듈 |
-| `:feature:rescue` | 홈, 목록, 상세, 상태 변경 | core 모듈 |
-| `:feature:report` | 통계와 장보기 힌트 | core 모듈 |
-| `:feature:settings` | 알림·개인정보·데이터 설정 | core 모듈 |
-
-초기 수직 기능 하나가 완성되기 전에는 모듈 수보다 명확한 인터페이스와 테스트를 우선한다.
+기능 수와 팀 규모가 커져 독립 빌드·소유권 경계가 필요해질 때 현재 패키지를 `core:domain`, `core:data`, `feature:*` 모듈로 그대로 승격할 수 있다. 지금은 비어 있는 모듈을 만들지 않는다.
 
 ## 5. 패키지 구조
 
-각 feature는 같은 구조를 사용한다.
+실제 Android 소스 구조는 다음과 같다.
 
 ```text
-feature/intake/
-├── navigation/
-├── presentation/
-│   ├── IntakeRoute.kt
-│   ├── IntakeScreen.kt
-│   ├── IntakeUiState.kt
-│   └── IntakeViewModel.kt
-├── domain/
-│   └── ClassifyPurchaseItemsUseCase.kt
-└── components/
+com/portfolio/fridgerescue/
+├── app/                         # Application, Activity, Hilt composition root
+├── core/
+│   ├── domain/
+│   │   ├── model/               # 순수 Kotlin 모델
+│   │   └── repository/          # 저장소 계약
+│   ├── data/
+│   │   ├── local/database/      # Room DAO·Entity·Database
+│   │   └── repository/          # Room 기반 구현
+│   └── designsystem/theme/      # Compose 테마
+└── feature/
+    ├── intake/{domain,data,presentation}/
+    ├── family/{domain,data}/
+    ├── notification/{domain,data,worker}/
+    ├── report/{domain,presentation}/
+    └── rescue/{domain,presentation}/
 ```
 
-- `Route`: ViewModel 수집과 내비게이션 연결
-- `Screen`: 상태 없는 화면 렌더링
-- `UiState`: 로딩·콘텐츠·부분 성공·실패 상태
-- `ViewModel`: 사용자 행동 처리와 도메인 호출
-- `components`: preview 가능한 작은 UI
+- `domain`: Android 프레임워크를 모르는 모델·정책·UseCase·인터페이스
+- `data`: Room, DataStore, ML Kit, HTTP 등 외부 기술의 구현과 매핑
+- `presentation`: Compose UI, `UiState`, `ViewModel`, 사용자 액션
+- `worker`: Android 백그라운드 진입점이며 도메인 계약을 통해 기능 실행
+- `app/di`: Hilt가 인터페이스와 구현을 연결하는 유일한 조립 지점
 
 ## 6. 주요 라이브러리 계획
 

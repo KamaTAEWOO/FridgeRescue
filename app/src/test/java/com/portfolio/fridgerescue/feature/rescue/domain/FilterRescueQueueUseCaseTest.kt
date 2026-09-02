@@ -1,9 +1,9 @@
 package com.portfolio.fridgerescue.feature.rescue.domain
 
-import com.portfolio.fridgerescue.core.model.FoodItem
-import com.portfolio.fridgerescue.core.model.FoodItemId
-import com.portfolio.fridgerescue.core.model.FoodStatus
-import com.portfolio.fridgerescue.core.model.StorageLocation
+import com.portfolio.fridgerescue.core.domain.model.FoodItem
+import com.portfolio.fridgerescue.core.domain.model.FoodItemId
+import com.portfolio.fridgerescue.core.domain.model.FoodStatus
+import com.portfolio.fridgerescue.core.domain.model.StorageLocation
 import java.time.LocalDate
 import org.junit.Assert.assertEquals
 import org.junit.Test

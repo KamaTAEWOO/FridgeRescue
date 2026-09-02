@@ -1,7 +1,7 @@
 package com.portfolio.fridgerescue.debug
 
 import androidx.room.withTransaction
-import com.portfolio.fridgerescue.core.data.database.FridgeRescueDatabase
+import com.portfolio.fridgerescue.core.data.local.database.FridgeRescueDatabase
 import java.time.LocalDate
 
 data class DemoSeedResult(

@@ -24,8 +24,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.portfolio.fridgerescue.R
-import com.portfolio.fridgerescue.core.model.FoodActionType
-import com.portfolio.fridgerescue.core.model.FoodEventType
+import com.portfolio.fridgerescue.core.domain.model.FoodActionType
+import com.portfolio.fridgerescue.core.domain.model.FoodEventType
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

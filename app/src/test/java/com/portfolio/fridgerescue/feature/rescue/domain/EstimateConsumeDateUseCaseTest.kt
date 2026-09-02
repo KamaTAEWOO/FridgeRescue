@@ -1,6 +1,6 @@
 package com.portfolio.fridgerescue.feature.rescue.domain
 
-import com.portfolio.fridgerescue.core.model.FoodDateSource
+import com.portfolio.fridgerescue.core.domain.model.FoodDateSource
 import java.time.LocalDate
 import org.junit.Assert.assertEquals
 import org.junit.Test

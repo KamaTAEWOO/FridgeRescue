@@ -1,5 +1,6 @@
 package com.portfolio.fridgerescue
 
+import com.portfolio.fridgerescue.app.MainActivity
 import android.content.Context
 import android.content.Intent
 import androidx.lifecycle.Lifecycle

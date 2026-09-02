@@ -43,7 +43,7 @@ fi
 
 "$adb_bin" -s "$device_serial" shell am force-stop com.portfolio.fridgerescue
 "$adb_bin" -s "$device_serial" shell am start \
-    -n com.portfolio.fridgerescue/.MainActivity >/dev/null
+    -n com.portfolio.fridgerescue/.app.MainActivity >/dev/null
 
 echo "완료: $device_serial"
 echo "- 앱 데이터: 식재료 18개, 이력 7개"

@@ -71,10 +71,11 @@
 | Room 마이그레이션·Compose UI | `TC-DATA-017`, `TC-BARCODE-007`, `TC-INTAKE-013` | `DatabaseMigrationTest`, `RescueScreenTest` | `AUTOMATED` |
 | JVM·Room·Compose UI | `TC-PRIVACY-004`, `005` 전체 삭제 | `SharedIntakeCacheCleanerTest`, `DataDeletionManagerTest`, `RescueScreenTest` | `AUTOMATED` |
 | 앱 시작 계측 | `TC-ARCH-001` Hilt 그래프와 MainActivity 생성 | `HiltAppLaunchTest` | `AUTOMATED` |
+| JVM 아키텍처 | `TC-ARCH-002~004` domain·data·presentation 의존 방향 | `CleanArchitectureDependencyTest` | `AUTOMATED` |
 
-- 자동 테스트: 104개
+- 자동 테스트: 107개
 - 최근 검증 환경: `FridgeRescue_API_26`, `FridgeRescue_API_36`
-- 최근 결과: 앱·서버 JVM 52개 통과, Hilt·Room·Intent·Compose 계측 52개 통과
+- 최근 결과: 앱·서버 JVM 55개 통과, Hilt·Room·Intent·Compose 계측 52개 통과
 
 ## 3. 자동화 계층
 

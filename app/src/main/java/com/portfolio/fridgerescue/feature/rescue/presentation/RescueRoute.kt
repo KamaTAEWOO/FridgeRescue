@@ -25,8 +25,8 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.core.app.NotificationManagerCompat
 import com.portfolio.fridgerescue.R
-import com.portfolio.fridgerescue.core.model.FoodActionType
-import com.portfolio.fridgerescue.feature.report.AppSection
+import com.portfolio.fridgerescue.core.domain.model.FoodActionType
+import com.portfolio.fridgerescue.feature.report.presentation.AppSection
 
 /**
  * ViewModel의 Flow를 생명주기에 맞춰 수집하고 Android 시스템 기능을 상태 없는 화면에 연결한다.

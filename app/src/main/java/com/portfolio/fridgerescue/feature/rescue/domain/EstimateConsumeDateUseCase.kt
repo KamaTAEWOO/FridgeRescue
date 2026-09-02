@@ -1,7 +1,7 @@
 package com.portfolio.fridgerescue.feature.rescue.domain
 
-import com.portfolio.fridgerescue.core.model.FoodDate
-import com.portfolio.fridgerescue.core.model.FoodDateSource
+import com.portfolio.fridgerescue.core.domain.model.FoodDate
+import com.portfolio.fridgerescue.core.domain.model.FoodDateSource
 import java.time.LocalDate
 
 class EstimateConsumeDateUseCase {

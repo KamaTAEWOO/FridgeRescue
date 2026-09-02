@@ -2,27 +2,29 @@ package com.portfolio.fridgerescue.feature.rescue.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.portfolio.fridgerescue.core.data.repository.FoodRepository
-import com.portfolio.fridgerescue.core.data.repository.IntakeDraftRepository
-import com.portfolio.fridgerescue.core.data.DataDeletionManager
-import com.portfolio.fridgerescue.core.model.FoodActionRequest
-import com.portfolio.fridgerescue.core.model.FoodActionType
-import com.portfolio.fridgerescue.core.model.FoodItemId
-import com.portfolio.fridgerescue.core.model.FoodMutationResult
-import com.portfolio.fridgerescue.core.model.FoodStatus
+import com.portfolio.fridgerescue.core.domain.repository.FoodRepository
+import com.portfolio.fridgerescue.core.domain.repository.IntakeDraftRepository
+import com.portfolio.fridgerescue.core.domain.repository.DataDeletionManager
+import com.portfolio.fridgerescue.core.domain.model.FoodActionRequest
+import com.portfolio.fridgerescue.core.domain.model.FoodActionType
+import com.portfolio.fridgerescue.core.domain.model.FoodItemId
+import com.portfolio.fridgerescue.core.domain.model.FoodItem
+import com.portfolio.fridgerescue.core.domain.model.FoodMutationResult
+import com.portfolio.fridgerescue.core.domain.model.FoodStatus
 import com.portfolio.fridgerescue.feature.rescue.domain.FoodItemDraft
 import com.portfolio.fridgerescue.feature.rescue.domain.GetRescueQueueUseCase
 import com.portfolio.fridgerescue.feature.rescue.domain.RescueUrgency
 import com.portfolio.fridgerescue.feature.rescue.domain.SaveFoodItemResult
 import com.portfolio.fridgerescue.feature.rescue.domain.SaveFoodItemUseCase
-import com.portfolio.fridgerescue.feature.intake.SaveIntakeCandidatesUseCase
-import com.portfolio.fridgerescue.feature.intake.UpdateIntakeCandidateUseCase
-import com.portfolio.fridgerescue.feature.intake.FindDuplicateCandidatesUseCase
-import com.portfolio.fridgerescue.feature.report.GetReportMetricsUseCase
-import com.portfolio.fridgerescue.feature.notification.NotificationSettings
-import com.portfolio.fridgerescue.feature.notification.NotificationSettingsRepository
-import com.portfolio.fridgerescue.feature.family.FamilySyncManager
-import com.portfolio.fridgerescue.feature.family.FamilySyncSettings
+import com.portfolio.fridgerescue.feature.intake.domain.SaveIntakeCandidatesUseCase
+import com.portfolio.fridgerescue.feature.intake.domain.UpdateIntakeCandidateUseCase
+import com.portfolio.fridgerescue.feature.intake.domain.FindDuplicateCandidatesUseCase
+import com.portfolio.fridgerescue.feature.report.domain.GetReportMetricsUseCase
+import com.portfolio.fridgerescue.feature.report.domain.ReportMetrics
+import com.portfolio.fridgerescue.feature.notification.domain.NotificationSettings
+import com.portfolio.fridgerescue.feature.notification.domain.NotificationSettingsRepository
+import com.portfolio.fridgerescue.feature.family.domain.FamilySyncService
+import com.portfolio.fridgerescue.feature.family.domain.FamilySyncSettings
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -53,7 +55,7 @@ class RescueViewModel(
     private val intakeDraftRepository: IntakeDraftRepository? = null,
     private val notificationSettingsRepository: NotificationSettingsRepository? = null,
     private val dataDeletionManager: DataDeletionManager? = null,
-    private val familySyncManager: FamilySyncManager? = null,
+    private val familySyncManager: FamilySyncService? = null,
     private val clock: Clock = Clock.systemDefaultZone(),
     private val getRescueQueue: GetRescueQueueUseCase = GetRescueQueueUseCase(),
     private val filterRescueQueue: FilterRescueQueueUseCase = FilterRescueQueueUseCase(),
@@ -184,7 +186,7 @@ class RescueViewModel(
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = com.portfolio.fridgerescue.feature.report.ReportMetrics(),
+        initialValue = ReportMetrics(),
     )
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -479,7 +481,7 @@ class RescueViewModel(
     )
 
     private data class QueueSnapshot(
-        val foodItems: List<com.portfolio.fridgerescue.core.model.FoodItem>,
+        val foodItems: List<FoodItem>,
         val allItems: List<com.portfolio.fridgerescue.feature.rescue.domain.RescueQueueItem>,
         val filteredItems: List<com.portfolio.fridgerescue.feature.rescue.domain.RescueQueueItem>,
         val filter: PantryFilter,
@@ -492,7 +494,7 @@ data class RescueDependencies(
     val intakeDraftRepository: IntakeDraftRepository,
     val notificationSettingsRepository: NotificationSettingsRepository,
     val dataDeletionManager: DataDeletionManager,
-    val familySyncManager: FamilySyncManager,
+    val familySyncManager: FamilySyncService,
     val clock: Clock,
     val getRescueQueue: GetRescueQueueUseCase,
     val filterRescueQueue: FilterRescueQueueUseCase,

@@ -5,7 +5,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
-import com.portfolio.fridgerescue.core.data.database.FridgeRescueDatabase
+import com.portfolio.fridgerescue.core.data.local.database.FridgeRescueDatabase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 

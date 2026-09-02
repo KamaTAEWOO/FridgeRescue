@@ -1,10 +1,10 @@
 package com.portfolio.fridgerescue.debug
 
-import com.portfolio.fridgerescue.core.data.database.FoodEventEntity
-import com.portfolio.fridgerescue.core.data.database.FoodItemEntity
-import com.portfolio.fridgerescue.core.model.FoodEventType
-import com.portfolio.fridgerescue.core.model.FoodStatus
-import com.portfolio.fridgerescue.core.model.StorageLocation
+import com.portfolio.fridgerescue.core.data.local.database.FoodEventEntity
+import com.portfolio.fridgerescue.core.data.local.database.FoodItemEntity
+import com.portfolio.fridgerescue.core.domain.model.FoodEventType
+import com.portfolio.fridgerescue.core.domain.model.FoodStatus
+import com.portfolio.fridgerescue.core.domain.model.StorageLocation
 import java.time.LocalDate
 import java.time.ZoneOffset
 

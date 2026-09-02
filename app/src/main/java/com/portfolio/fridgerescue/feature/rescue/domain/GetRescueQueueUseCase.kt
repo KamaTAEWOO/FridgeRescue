@@ -1,7 +1,7 @@
 package com.portfolio.fridgerescue.feature.rescue.domain
 
-import com.portfolio.fridgerescue.core.model.FoodDate
-import com.portfolio.fridgerescue.core.model.FoodItem
+import com.portfolio.fridgerescue.core.domain.model.FoodDate
+import com.portfolio.fridgerescue.core.domain.model.FoodItem
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
