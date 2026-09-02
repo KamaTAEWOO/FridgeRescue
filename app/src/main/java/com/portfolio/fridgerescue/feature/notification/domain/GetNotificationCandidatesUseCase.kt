@@ -12,7 +12,8 @@ class GetNotificationCandidatesUseCase(
         .filterNot(FoodItem::isFinalized)
         .filter { foodItem ->
             val date = foodItem.effectiveDate()?.value ?: return@filter false
-            ChronoUnit.DAYS.between(today, date) in reminderDays
+            val daysRemaining = ChronoUnit.DAYS.between(today, date)
+            daysRemaining <= 0 || daysRemaining in reminderDays
         }
         .sortedBy { it.effectiveDate()?.value }
         .toList()

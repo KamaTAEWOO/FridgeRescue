@@ -49,11 +49,6 @@ fun ReportContent(metrics: ReportMetrics, modifier: Modifier = Modifier) {
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Text(
-            text = stringResource(R.string.report_title),
-            style = MaterialTheme.typography.headlineLarge,
-            fontWeight = FontWeight.Black,
-        )
-        Text(
             text = stringResource(R.string.report_description),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -132,11 +127,6 @@ fun SettingsContent(
             .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Text(
-            text = stringResource(R.string.settings_title),
-            style = MaterialTheme.typography.headlineLarge,
-            fontWeight = FontWeight.Black,
-        )
         SettingCard(
             title = stringResource(R.string.settings_notification_title),
             description = if (notificationsEnabled) {

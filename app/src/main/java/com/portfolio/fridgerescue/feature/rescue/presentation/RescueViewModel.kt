@@ -263,6 +263,9 @@ class RescueViewModel(
         )
         RescueUiState.Content(
             items = queue.filteredItems,
+            notificationItems = queue.allItems.filter {
+                it.urgency == RescueUrgency.OVERDUE || it.urgency == RescueUrgency.TODAY
+            },
             totalItemCount = queue.allItems.size,
             pantryFilter = queue.filter,
             urgentCount = queue.allItems.count {

@@ -13,22 +13,22 @@
 | 자동 선별 | 수량 추출, 메타데이터 제외, 관리·확인·제외 그룹, 후보 이름·수량 편집·복구, 반복 공유·기존 재료 중복 경고 | 파서·중복 규칙·Room·Compose UI |
 | 냉장고 | Room 스키마 v5, 날짜 출처, 수량·보관 위치, 추가·수정, 검색·위치·상태 필터, 구조 큐 | DAO·마이그레이션·UI |
 | 행동 이력 | 먹음·아직 있음·일부 사용·버림, 폐기 사유, 멱등키, 실행 취소 | 트랜잭션·UI |
-| 알림 | D-3·D-1·당일 요약, 직접 행동, 홈 배지, 22~08시 조용한 시간 | 규칙 단위·권한 UI |
+| 알림 | 기한 경과·D-3·D-1·당일 요약, 앱바 알림함·배지, 개봉 여부와 장보기 피드백, 직접 행동, 22~08시 조용한 시간 | 규칙 단위·권한 UI |
 | 아키텍처 | `presentation → domain ← data` Clean Architecture, Hilt 조립 지점, ViewModel·Coroutine·StateFlow UDF, Worker·Receiver 주입 | 계층 의존 규칙 단위 테스트·KSP 컴파일·전체 회귀 테스트 |
 | 리포트 | 구조·폐기 건수, 금액 미추정 원칙, 반복 폐기 힌트 | 단위·UI |
-| 완성도 | 접이식 검색·필터, 단순화한 카드 행동, 중립 하단 탐색, 다크 모드, 넓은 화면 2열, 24시간 캐시 정리, 확인 후 전체 로컬 데이터 삭제, CI | Lint·Room·Compose UI·에뮬레이터 |
+| 완성도 | 공통 앱바와 핵심 행동, 알림함, 카드 즉시 행동과 더보기, 접이식 검색·필터, 중립 하단 탐색, 다크 모드, 넓은 화면 2열, 24시간 캐시 정리, 확인 후 전체 로컬 데이터 삭제, CI | Lint·Room·Compose UI·에뮬레이터 |
 | 릴리스 | R8 코드·리소스 축소, 외부 서명 설정, signed APK·AAB·mapping 산출 | `apksigner`, `jarsigner`, Release 스모크 |
 
 ## 검증 결과
 
 - 앱·서버 JVM 테스트: 55개 통과(계층 의존 규칙 3개 포함)
-- `connectedDebugAndroidTest`: 52개 통과 (`FridgeRescue_API_26`, `FridgeRescue_API_36`)
+- `connectedDebugAndroidTest`: 54개 통과 (`FridgeRescue_API_26`, `FridgeRescue_API_36`)
 - `lintDebug`: 오류 없음
 - `assembleDebug`: APK 생성 성공
 - 앱 콜드 스타트와 공유 인텐트, 실제 온디바이스 OCR, 시스템 카메라 진입 수동 확인
 - API 36 에뮬레이터 Debug 콜드 스타트 3회: 1,962ms / 1,207ms / 927ms
 - 200% 글자 크기와 시스템 다크 모드에서 홈 핵심 행동·하단 탐색 표시 확인
-- API 26 계측 52개 통과, TalkBack 바인딩·접근성 이름, 재부팅·Doze·절전 모드 QA 통과
+- API 26 계측 54개 통과, TalkBack 바인딩·접근성 이름, 재부팅·Doze·절전 모드 QA 통과
 - 상세 기기 결과: [QA_REPORT_2026-09-02.md](./QA_REPORT_2026-09-02.md)
 - QA 서명 Release APK(43MB)·AAB(23MB) 생성, API 36 콜드 스타트·공유 입력·Google Code Scanner 진입 확인
 

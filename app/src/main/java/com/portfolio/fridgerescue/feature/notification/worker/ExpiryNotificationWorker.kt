@@ -82,7 +82,8 @@ class ExpiryNotificationWorker @AssistedInject constructor(
             )
         }
         val foods = if (staleFoods.isEmpty()) initialFoods else repository.foodItems.first()
-        val candidates = getNotificationCandidates(foods, LocalDate.now())
+        val today = LocalDate.now()
+        val candidates = getNotificationCandidates(foods, today)
         if (candidates.isEmpty()) {
             notificationManager.cancel(NOTIFICATION_ID)
             return Result.success()
@@ -91,7 +92,15 @@ class ExpiryNotificationWorker @AssistedInject constructor(
         createChannel()
         val names = candidates.take(3).joinToString(", ") { it.name }
         val remaining = candidates.size - 3
-        val body = if (remaining > 0) "$names 외 ${remaining}개" else names
+        val namesBody = if (remaining > 0) "$names 외 ${remaining}개" else names
+        val unopenedOverdueCount = candidates.count { foodItem ->
+            !foodItem.isOpened && foodItem.effectiveDate()?.value?.isBefore(today) == true
+        }
+        val body = if (unopenedOverdueCount > 0) {
+            "$namesBody · ${applicationContext.getString(R.string.notification_unopened_overdue_short, unopenedOverdueCount)}"
+        } else {
+            namesBody
+        }
         val contentIntent = PendingIntent.getActivity(
             applicationContext,
             0,

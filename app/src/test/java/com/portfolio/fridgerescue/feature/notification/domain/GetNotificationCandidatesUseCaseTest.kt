@@ -16,12 +16,12 @@ class GetNotificationCandidatesUseCaseTest {
     private val useCase = GetNotificationCandidatesUseCase()
 
     @Test
-    fun `TC-NOTIFY-001 only D3 D1 and today are selected`() {
+    fun `TC-NOTIFY-001 overdue D3 D1 and today are selected`() {
         val items = listOf(3L, 2L, 1L, 0L, -1L).map { days -> food("food-$days", days) }
 
         val result = useCase(items, today)
 
-        assertEquals(listOf("food-0", "food-1", "food-3"), result.map { it.name })
+        assertEquals(listOf("food--1", "food-0", "food-1", "food-3"), result.map { it.name })
     }
 
     @Test

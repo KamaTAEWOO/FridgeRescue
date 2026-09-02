@@ -17,6 +17,7 @@ sealed interface RescueUiState {
 
     data class Content(
         val items: List<RescueQueueItem>,
+        val notificationItems: List<RescueQueueItem> = emptyList(),
         val totalItemCount: Int = items.size,
         val pantryFilter: PantryFilter = PantryFilter(),
         val urgentCount: Int,

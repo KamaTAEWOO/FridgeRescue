@@ -11,10 +11,14 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,6 +37,7 @@ fun FoodRescueCard(
     queueItem: RescueQueueItem,
     onOpenActions: () -> Unit,
     onMarkConsumed: () -> Unit,
+    onMarkStillHere: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val emphasized = queueItem.urgency == RescueUrgency.OVERDUE ||
@@ -77,7 +82,15 @@ fun FoodRescueCard(
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
-                UrgencyBadge(queueItem)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    UrgencyBadge(queueItem)
+                    IconButton(onClick = onOpenActions) {
+                        Icon(
+                            imageVector = Icons.Filled.MoreVert,
+                            contentDescription = stringResource(R.string.rescue_more_actions),
+                        )
+                    }
+                }
             }
 
             Text(
@@ -93,11 +106,11 @@ fun FoodRescueCard(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 OutlinedButton(
-                    onClick = onOpenActions,
+                    onClick = onMarkStillHere,
                     modifier = Modifier.weight(1f),
                 ) {
                     Text(
-                        text = stringResource(R.string.rescue_more_actions),
+                        text = stringResource(R.string.action_still_here),
                         fontWeight = FontWeight.Bold,
                     )
                 }
@@ -157,7 +170,9 @@ private fun UrgencyBadge(queueItem: RescueQueueItem) {
 private fun RescueQueueItem.metadataDescription(): String {
     val storage = foodItem.storageLocation.label()
     val quantity = foodItem.quantity?.let { stringResource(R.string.food_quantity_format, it) }
-    val opened = if (foodItem.isOpened) stringResource(R.string.food_opened) else null
+    val opened = stringResource(
+        if (foodItem.isOpened) R.string.food_opened else R.string.food_unopened,
+    )
     val pinned = if (foodItem.isPinned) stringResource(R.string.food_pinned) else null
     val labels = listOfNotNull(storage, quantity, opened, pinned)
     return labels.joinToString(separator = " · ")

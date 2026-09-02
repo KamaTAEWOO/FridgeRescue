@@ -1,5 +1,6 @@
 package com.portfolio.fridgerescue.feature.rescue.presentation
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.selection.selectable
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
@@ -25,14 +27,23 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -40,6 +51,8 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -58,6 +71,7 @@ import androidx.compose.ui.unit.dp
 import com.portfolio.fridgerescue.R
 import com.portfolio.fridgerescue.core.domain.model.FoodDate
 import com.portfolio.fridgerescue.core.domain.model.FoodDateSource
+import com.portfolio.fridgerescue.core.domain.model.FoodActionType
 import com.portfolio.fridgerescue.core.domain.model.FoodItem
 import com.portfolio.fridgerescue.core.domain.model.FoodItemId
 import com.portfolio.fridgerescue.core.domain.model.FoodStatus
@@ -67,6 +81,8 @@ import com.portfolio.fridgerescue.feature.intake.presentation.IntakeDraftSheet
 import com.portfolio.fridgerescue.feature.intake.presentation.IntakeOptionsSheet
 import com.portfolio.fridgerescue.feature.rescue.domain.GetRescueQueueUseCase
 import com.portfolio.fridgerescue.feature.rescue.domain.PantryStatusFilter
+import com.portfolio.fridgerescue.feature.rescue.domain.RescueQueueItem
+import com.portfolio.fridgerescue.feature.rescue.domain.RescueUrgency
 import com.portfolio.fridgerescue.feature.report.presentation.AppSection
 import com.portfolio.fridgerescue.feature.report.presentation.ReportContent
 import com.portfolio.fridgerescue.feature.report.domain.ReportMetrics
@@ -75,6 +91,7 @@ import com.portfolio.fridgerescue.feature.notification.domain.NotificationSettin
 import com.portfolio.fridgerescue.core.designsystem.theme.FridgeRescueTheme
 import java.time.LocalDate
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RescueScreen(
     uiState: RescueUiState,
@@ -99,11 +116,26 @@ fun RescueScreen(
     onQuietHoursEnabledChange: (Boolean) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
+    var showNotificationPage by rememberSaveable { mutableStateOf(false) }
+    val contentState = uiState as? RescueUiState.Content
+    BackHandler(enabled = showNotificationPage) { showNotificationPage = false }
+
     Scaffold(
         modifier = modifier.fillMaxSize(),
+        topBar = {
+            RescueTopAppBar(
+                selectedSection = selectedSection,
+                showAddAction = uiState is RescueUiState.Content,
+                showNotificationPage = showNotificationPage,
+                notificationCount = contentState?.notificationItems?.size ?: 0,
+                onOpenNotifications = { showNotificationPage = true },
+                onCloseNotifications = { showNotificationPage = false },
+                onAddFood = { onAction(RescueAction.OpenImportOptions) },
+            )
+        },
         snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
-            if (uiState is RescueUiState.Content) {
+            if (uiState is RescueUiState.Content && !showNotificationPage) {
                 RescueNavigationBar(
                     selectedSection = selectedSection,
                     onSectionSelected = onSectionSelected,
@@ -120,26 +152,30 @@ fun RescueScreen(
         ) {
             when (uiState) {
                 RescueUiState.Loading -> LoadingContent()
-                is RescueUiState.Content -> when (selectedSection) {
-                    AppSection.HOME -> RescueContent(
-                        uiState = uiState,
-                        onAction = onAction,
+                is RescueUiState.Content -> if (showNotificationPage) {
+                    NotificationContent(
+                        items = uiState.notificationItems,
                         notificationsEnabled = notificationsEnabled,
                         onRequestNotificationPermission = onRequestNotificationPermission,
+                        onAction = onAction,
                     )
-                    AppSection.REPORT -> ReportContent(reportMetrics)
-                    AppSection.SETTINGS -> SettingsContent(
-                        notificationsEnabled = notificationsEnabled,
-                        notificationSettings = notificationSettings,
-                        onOpenNotificationSettings = onOpenNotificationSettings,
-                        onQuietHoursEnabledChange = onQuietHoursEnabledChange,
-                        isDeletingData = isDeletingData,
-                        familySyncState = familySyncState,
-                        onDeleteAllData = onDeleteAllData,
-                        onCreateFamilyAccount = onCreateFamilyAccount,
-                        onJoinFamily = onJoinFamily,
-                        onSyncFamily = onSyncFamily,
-                    )
+                } else {
+                    when (selectedSection) {
+                        AppSection.HOME -> RescueContent(uiState = uiState, onAction = onAction)
+                        AppSection.REPORT -> ReportContent(reportMetrics)
+                        AppSection.SETTINGS -> SettingsContent(
+                            notificationsEnabled = notificationsEnabled,
+                            notificationSettings = notificationSettings,
+                            onOpenNotificationSettings = onOpenNotificationSettings,
+                            onQuietHoursEnabledChange = onQuietHoursEnabledChange,
+                            isDeletingData = isDeletingData,
+                            familySyncState = familySyncState,
+                            onDeleteAllData = onDeleteAllData,
+                            onCreateFamilyAccount = onCreateFamilyAccount,
+                            onJoinFamily = onJoinFamily,
+                            onSyncFamily = onSyncFamily,
+                        )
+                    }
                 }
             }
         }
@@ -155,7 +191,7 @@ fun RescueScreen(
         )
     }
     val detail = (uiState as? RescueUiState.Content)?.detail?.takeIf {
-        selectedSection == AppSection.HOME
+        selectedSection == AppSection.HOME || showNotificationPage
     }
     if (detail != null) {
         FoodDetailSheet(state = detail, onAction = onAction)
@@ -223,8 +259,6 @@ private fun LoadingContent() {
 private fun RescueContent(
     uiState: RescueUiState.Content,
     onAction: (RescueAction) -> Unit,
-    notificationsEnabled: Boolean,
-    onRequestNotificationPermission: () -> Unit,
 ) {
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         if (maxWidth >= 840.dp) {
@@ -242,9 +276,6 @@ private fun RescueContent(
                 ) {
                     overviewItems(
                         uiState = uiState,
-                        onAction = onAction,
-                        notificationsEnabled = notificationsEnabled,
-                        onRequestNotificationPermission = onRequestNotificationPermission,
                     )
                 }
                 LazyColumn(
@@ -268,9 +299,6 @@ private fun RescueContent(
             ) {
                 overviewItems(
                     uiState = uiState,
-                    onAction = onAction,
-                    notificationsEnabled = notificationsEnabled,
-                    onRequestNotificationPermission = onRequestNotificationPermission,
                 )
                 queueItems(uiState, onAction)
             }
@@ -280,19 +308,12 @@ private fun RescueContent(
 
 private fun LazyListScope.overviewItems(
     uiState: RescueUiState.Content,
-    onAction: (RescueAction) -> Unit,
-    notificationsEnabled: Boolean,
-    onRequestNotificationPermission: () -> Unit,
 ) {
     item {
-        RescueHeader(
+        RescueSummaryCard(
             urgentCount = uiState.urgentCount,
             needsReviewCount = uiState.needsReviewCount,
-            onImport = { onAction(RescueAction.OpenImportOptions) },
         )
-    }
-    if (uiState.urgentCount > 0 && !notificationsEnabled) {
-        item { NotificationPermissionCard(onRequestNotificationPermission) }
     }
 }
 
@@ -321,6 +342,9 @@ private fun LazyListScope.queueItems(
                 queueItem = queueItem,
                 onOpenActions = { onAction(RescueAction.OpenFoodActions(queueItem.foodItem.id)) },
                 onMarkConsumed = { onAction(RescueAction.MarkConsumed(queueItem.foodItem.id)) },
+                onMarkStillHere = {
+                    onAction(RescueAction.RecordFoodAction(queueItem.foodItem.id, FoodActionType.STILL_HERE))
+                },
             )
         }
     }
@@ -460,6 +484,89 @@ private fun FilterEmptyContent(onClear: () -> Unit) {
     }
 }
 
+/** 기한 경과·당일 재료와 알림 권한, 장보기 피드백을 한곳에 모은 알림 페이지다. */
+@Composable
+private fun NotificationContent(
+    items: List<RescueQueueItem>,
+    notificationsEnabled: Boolean,
+    onRequestNotificationPermission: () -> Unit,
+    onAction: (RescueAction) -> Unit,
+) {
+    val unopenedOverdueCount = items.count {
+        it.urgency == RescueUrgency.OVERDUE && !it.foodItem.isOpened
+    }
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .widthIn(max = 720.dp)
+            .verticalScroll(rememberScrollState())
+            .navigationBarsPadding()
+            .padding(horizontal = 20.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Text(
+            text = stringResource(R.string.notification_center_count, items.size),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            fontWeight = FontWeight.Bold,
+        )
+        if (!notificationsEnabled) {
+            NotificationPermissionCard(onRequestNotificationPermission)
+        }
+        if (unopenedOverdueCount > 0) {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = MaterialTheme.colorScheme.primaryContainer,
+                shape = RoundedCornerShape(18.dp),
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = stringResource(R.string.notification_unopened_feedback_title),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Text(
+                        text = stringResource(
+                            R.string.notification_unopened_feedback,
+                            unopenedOverdueCount,
+                        ),
+                        modifier = Modifier.padding(top = 4.dp),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
+        if (items.isEmpty()) {
+            Text(
+                text = stringResource(R.string.notification_center_empty),
+                modifier = Modifier.padding(vertical = 28.dp),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        } else {
+            items.forEach { queueItem ->
+                FoodRescueCard(
+                    queueItem = queueItem,
+                    onOpenActions = {
+                        onAction(RescueAction.OpenFoodActions(queueItem.foodItem.id))
+                    },
+                    onMarkConsumed = {
+                        onAction(RescueAction.MarkConsumed(queueItem.foodItem.id))
+                    },
+                    onMarkStillHere = {
+                        onAction(
+                            RescueAction.RecordFoodAction(
+                                queueItem.foodItem.id,
+                                FoodActionType.STILL_HERE,
+                            ),
+                        )
+                    },
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+    }
+}
+
 @Composable
 private fun NotificationPermissionCard(onRequestPermission: () -> Unit) {
     Surface(
@@ -493,46 +600,135 @@ private fun NotificationPermissionCard(onRequestPermission: () -> Unit) {
 }
 
 @Composable
-private fun RescueHeader(
+private fun RescueSummaryCard(
     urgentCount: Int,
     needsReviewCount: Int,
-    onImport: () -> Unit,
 ) {
-    Column {
-        Text(
-            text = stringResource(R.string.rescue_eyebrow),
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            fontWeight = FontWeight.Bold,
-        )
-        Text(
-            text = stringResource(R.string.rescue_title),
-            modifier = Modifier.padding(top = 4.dp),
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Black,
-        )
-        Text(
-            text = stringResource(
-                R.string.rescue_summary_sentence,
-                urgentCount,
-                needsReviewCount,
-            ),
-            modifier = Modifier.padding(top = 3.dp),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        androidx.compose.material3.Button(
-            onClick = onImport,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 12.dp),
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        shape = RoundedCornerShape(20.dp),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            Text(
-                text = stringResource(R.string.rescue_add_food),
-                fontWeight = FontWeight.Bold,
-            )
+            Column {
+                Text(
+                    text = stringResource(R.string.rescue_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                )
+                Text(
+                    text = stringResource(
+                        R.string.rescue_summary_sentence,
+                        urgentCount,
+                        needsReviewCount,
+                    ),
+                    modifier = Modifier.padding(top = 2.dp),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
     }
+}
+
+object AppBarTestTags {
+    const val ADD_FOOD = "app-bar-add-food"
+    const val NOTIFICATIONS = "app-bar-notifications"
+}
+
+/** 각 탭의 제목과 현재 화면의 핵심 행동만 한곳에 모은 공통 상단 앱바다. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun RescueTopAppBar(
+    selectedSection: AppSection,
+    showAddAction: Boolean,
+    showNotificationPage: Boolean,
+    notificationCount: Int,
+    onOpenNotifications: () -> Unit,
+    onCloseNotifications: () -> Unit,
+    onAddFood: () -> Unit,
+) {
+    TopAppBar(
+        navigationIcon = {
+            if (showNotificationPage) {
+                IconButton(onClick = onCloseNotifications) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = stringResource(R.string.notification_center_close),
+                    )
+                }
+            }
+        },
+        title = {
+            Text(
+                text = if (showNotificationPage) {
+                    stringResource(R.string.notification_center_title)
+                } else {
+                    selectedSection.appBarTitle()
+                },
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Black,
+            )
+        },
+        actions = {
+            if (!showNotificationPage && showAddAction) {
+                IconButton(
+                    onClick = onOpenNotifications,
+                    modifier = Modifier.testTag(AppBarTestTags.NOTIFICATIONS),
+                ) {
+                    BadgedBox(
+                        badge = {
+                            if (notificationCount > 0) {
+                                Badge {
+                                    Text(if (notificationCount > 9) "9+" else notificationCount.toString())
+                                }
+                            }
+                        },
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Notifications,
+                            contentDescription = stringResource(R.string.notification_center_open),
+                        )
+                    }
+                }
+            }
+            if (!showNotificationPage && selectedSection == AppSection.HOME && showAddAction) {
+                Button(
+                    onClick = onAddFood,
+                    modifier = Modifier
+                        .padding(end = 12.dp)
+                        .testTag(AppBarTestTags.ADD_FOOD),
+                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Add,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Text(
+                        text = stringResource(R.string.rescue_add_food),
+                        modifier = Modifier.padding(start = 5.dp),
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+            }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.background,
+            scrolledContainerColor = MaterialTheme.colorScheme.background,
+        ),
+    )
+}
+
+@Composable
+private fun AppSection.appBarTitle(): String = when (this) {
+    AppSection.HOME -> stringResource(R.string.app_name)
+    AppSection.REPORT -> stringResource(R.string.report_title)
+    AppSection.SETTINGS -> stringResource(R.string.settings_title)
 }
 
 @Composable

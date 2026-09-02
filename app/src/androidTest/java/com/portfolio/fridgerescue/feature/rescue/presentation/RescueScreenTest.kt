@@ -6,6 +6,7 @@ import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onAllNodesWithTag
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -130,10 +131,6 @@ class RescueScreenTest {
         setRoute(viewModel)
 
         composeRule.onNodeWithTag(PantryFilterTestTags.LIST).performScrollToIndex(2)
-        composeRule.onNodeWithText("관리").performClick()
-        composeRule.waitUntil(timeoutMillis = 5_000) {
-            composeRule.onAllNodesWithText("아직 있어요").fetchSemanticsNodes().isNotEmpty()
-        }
         composeRule.onNodeWithText("아직 있어요").performClick()
         composeRule.onNodeWithText("실행 취소").assertIsDisplayed()
 
@@ -162,6 +159,7 @@ class RescueScreenTest {
         setScreen(contentState(item), notificationsEnabled = false)
 
         composeRule.onNodeWithText("곧 확인 1 · 날짜 확인 0").assertIsDisplayed()
+        composeRule.onNodeWithTag(AppBarTestTags.NOTIFICATIONS).performClick()
         composeRule.onNodeWithText("요약 알림 켜기").assertIsDisplayed()
     }
 
@@ -230,7 +228,7 @@ class RescueScreenTest {
         composeRule.onNodeWithText("제품 표시일 · 8월 31일").assertIsDisplayed()
         composeRule.onNodeWithText("기한 1일 지남").assertIsDisplayed()
         composeRule.onNodeWithText("냉장 · 1개 · 개봉").assertIsDisplayed()
-        composeRule.onNodeWithText("관리").assertIsDisplayed()
+        composeRule.onNodeWithText("아직 있어요").assertIsDisplayed()
     }
 
     @Test
@@ -252,6 +250,51 @@ class RescueScreenTest {
 
         composeRule.onNodeWithTag(PantryFilterTestTags.SEARCH).assertIsDisplayed()
         composeRule.onNodeWithText("접기").assertIsDisplayed()
+    }
+
+    @Test
+    fun TC_UI_014_app_bar_shows_screen_title_and_dispatches_primary_action() {
+        var requestedAction: RescueAction? = null
+        setScreen(
+            uiState = contentState(),
+            onAction = { requestedAction = it },
+        )
+
+        composeRule.onNodeWithText("냉장고 구조대").assertIsDisplayed()
+        composeRule.onNodeWithTag(AppBarTestTags.ADD_FOOD).assertIsDisplayed().performClick()
+
+        composeRule.runOnIdle {
+            assertEquals(RescueAction.OpenImportOptions, requestedAction)
+        }
+    }
+
+    @Test
+    fun TC_UI_015_notification_center_groups_due_items_and_unopened_feedback() {
+        val overdueUnopened = foodItem(
+            id = "unopened-overdue",
+            name = "두부",
+            date = FoodDate(today.minusDays(2), FoodDateSource.MANUFACTURER_DISPLAYED),
+        )
+        val dueTodayOpened = foodItem(
+            id = "opened-today",
+            name = "우유",
+            date = FoodDate(today, FoodDateSource.USER_CONFIRMED),
+        ).copy(isOpened = true)
+        setScreen(contentState(overdueUnopened, dueTodayOpened))
+
+        composeRule.onNodeWithTag(AppBarTestTags.NOTIFICATIONS).performClick()
+
+        composeRule.onAllNodesWithText("알림").assertCountEquals(1)
+        composeRule.onAllNodesWithText("구조").assertCountEquals(0)
+        composeRule.onNodeWithText("확인할 재료 2개").assertIsDisplayed()
+        composeRule.onNodeWithText("미개봉 상태로 기한이 지난 재료가 1개 있어요.", substring = true)
+            .assertIsDisplayed()
+        composeRule.onAllNodesWithText("냉장 · 미개봉").assertCountEquals(1)
+        composeRule.onAllNodesWithText("냉장 · 개봉").assertCountEquals(1)
+
+        composeRule.onNodeWithContentDescription("알림 닫기").performClick()
+        composeRule.onNodeWithText("냉장고 구조대").assertIsDisplayed()
+        composeRule.onNodeWithText("구조").assertIsDisplayed()
     }
 
     @Test
@@ -506,7 +549,7 @@ class RescueScreenTest {
         setRoute(viewModel)
 
         composeRule.onNodeWithTag(PantryFilterTestTags.LIST).performScrollToIndex(2)
-        composeRule.onNodeWithText("관리").performClick()
+        composeRule.onNodeWithContentDescription("더보기").performClick()
         composeRule.onNodeWithText("정보 수정").performClick()
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithTag(FoodEditorTestTags.NAME).fetchSemanticsNodes().isNotEmpty()
@@ -724,6 +767,9 @@ class RescueScreenTest {
         val queueItems = GetRescueQueueUseCase()(items.toList(), today)
         return RescueUiState.Content(
             items = queueItems,
+            notificationItems = queueItems.filter {
+                it.urgency == RescueUrgency.OVERDUE || it.urgency == RescueUrgency.TODAY
+            },
             urgentCount = queueItems.count {
                 it.urgency == RescueUrgency.OVERDUE ||
                     it.urgency == RescueUrgency.TODAY ||
