@@ -43,6 +43,10 @@ import com.portfolio.fridgerescue.feature.rescue.domain.PantryFilter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
+/**
+ * 홈·재료 관리·리포트·설정 화면의 사용자 행동을 단방향으로 처리한다.
+ * Room과 DataStore의 Flow를 불변 UI 상태로 결합하고, 쓰기 작업은 [viewModelScope]에서 실행한다.
+ */
 @HiltViewModel
 class RescueViewModel(
     private val repository: FoodRepository,
@@ -79,7 +83,10 @@ class RescueViewModel(
         getReportMetrics = dependencies.getReportMetrics,
     )
 
+    // 스낵바처럼 한 번만 소비해야 하는 결과는 StateFlow와 분리해 이벤트 Flow로 전달한다.
     private val eventChannel = Channel<RescueEvent>(Channel.BUFFERED)
+
+    // 편집기·상세 시트·필터는 저장 데이터가 아닌 현재 화면 세션의 상태다.
     private val editorState = MutableStateFlow<FoodEditorUiState?>(null)
     private val detailSelection = MutableStateFlow<DetailSelection?>(null)
     private val savingIntakeDraftId = MutableStateFlow<String?>(null)
@@ -91,6 +98,7 @@ class RescueViewModel(
 
     val isDeletingData = deletingData.asStateFlow()
 
+    // 가족 설정, 진행 상태, 최근 결과가 바뀔 때만 설정 화면 상태를 다시 만든다.
     val familySyncState = combine(
         familySyncManager?.settings ?: flowOf(FamilySyncSettings()),
         familySyncBusy,
@@ -181,6 +189,7 @@ class RescueViewModel(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val detailState = detailSelection.flatMapLatest { selection ->
+        // 선택 항목이 바뀌면 이전 항목의 이력 구독을 즉시 취소한다.
         if (selection == null) {
             flowOf(null)
         } else {
@@ -202,6 +211,7 @@ class RescueViewModel(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val intakeReview = intakeDraftRepository?.latestActiveDraft?.flatMapLatest { draft ->
+        // 최신 초안만 관찰해 이미 보관된 초안의 변경이 현재 화면에 섞이지 않게 한다.
         if (draft == null) {
             flowOf(null)
         } else {
@@ -218,6 +228,7 @@ class RescueViewModel(
         }
     } ?: flowOf(null)
 
+    // 원본 목록은 한 번 정렬한 뒤 현재 검색·필터 조건만 적용한다.
     private val queueState = combine(repository.foodItems, pantryFilter) { foodItems, filter ->
         val allItems = getRescueQueue(foodItems, LocalDate.now(clock))
         QueueSnapshot(
@@ -228,6 +239,7 @@ class RescueViewModel(
         )
     }
 
+    /** Compose가 생명주기에 맞춰 수집하는 화면의 단일 기준 상태다. */
     val uiState = combine(
         queueState,
         editorState,
@@ -474,6 +486,7 @@ class RescueViewModel(
     )
 }
 
+/** Hilt가 운영 환경의 ViewModel에 전달하는 의존성 묶음이다. */
 data class RescueDependencies(
     val foodRepository: FoodRepository,
     val intakeDraftRepository: IntakeDraftRepository,

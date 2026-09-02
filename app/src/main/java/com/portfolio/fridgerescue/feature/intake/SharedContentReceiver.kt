@@ -19,6 +19,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 
+/**
+ * 다른 앱에서 공유된 텍스트·이미지·PDF를 앱 전용 초안으로 변환한다.
+ * 파일 IO와 OCR은 IO 디스패처에서 수행하고, 화면에는 원본 URI 대신 Room의 초안 Flow만 노출한다.
+ */
 class SharedContentReceiver(
     private val context: Context,
     private val repository: IntakeDraftRepository,
@@ -31,6 +35,7 @@ class SharedContentReceiver(
         if (intent.action != Intent.ACTION_SEND && intent.action != Intent.ACTION_SEND_MULTIPLE) {
             return@withContext null
         }
+        // 직전 초안은 같은 영수증을 반복 공유했는지 비교하는 데만 사용한다.
         val previousDraft = repository.latestActiveDraft.first()
         val draftId = idFactory()
         val now = Instant.now(clock)
@@ -71,6 +76,7 @@ class SharedContentReceiver(
     }
 
     private suspend fun processFileDraft(draft: IntakeDraft, previousDraft: IntakeDraft?) {
+        // PROCESSING 초안을 먼저 저장하므로 OCR 도중 프로세스가 종료돼도 실패 상태를 복구할 수 있다.
         val file = draft.cachedFilePath?.let(::File)
         val extraction = file?.let { cachedFile ->
             runCatching {

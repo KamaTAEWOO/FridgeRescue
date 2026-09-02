@@ -23,11 +23,16 @@ import kotlinx.coroutines.launch
 import java.io.File
 import java.util.UUID
 
+/**
+ * 카메라·Photo Picker·바코드 스캐너처럼 Activity가 소유해야 하는 시스템 UI만 연결한다.
+ * 데이터 처리와 화면 상태는 주입된 입력 처리기와 `RescueViewModel`에 위임한다.
+ */
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     @Inject lateinit var sharedContentReceiver: SharedContentReceiver
     @Inject lateinit var receiveBarcode: ReceiveBarcodeUseCase
 
+    // TakePicture 결과에는 URI가 다시 전달되지 않으므로 요청 시 만든 파일을 잠시 보관한다.
     private var pendingCaptureFile: File? = null
     private val receiptCamera = registerForActivityResult(
         ActivityResultContracts.TakePicture(),

@@ -28,6 +28,9 @@ import com.portfolio.fridgerescue.R
 import com.portfolio.fridgerescue.core.model.FoodActionType
 import com.portfolio.fridgerescue.feature.report.AppSection
 
+/**
+ * ViewModel의 Flow를 생명주기에 맞춰 수집하고 Android 시스템 기능을 상태 없는 화면에 연결한다.
+ */
 @Composable
 fun RescueRoute(
     viewModel: RescueViewModel = viewModel(),
@@ -71,6 +74,7 @@ fun RescueRoute(
     val dataDeletedMessage = stringResource(R.string.settings_delete_done)
     val dataDeletionFailedMessage = stringResource(R.string.settings_delete_failed)
 
+    // 단발성 ViewModel 이벤트는 Route에서 사용자 메시지와 실행 취소 동작으로 변환한다.
     LaunchedEffect(
         viewModel,
         consumedMessage,

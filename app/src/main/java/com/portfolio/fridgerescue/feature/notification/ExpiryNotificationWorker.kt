@@ -32,6 +32,10 @@ import kotlinx.coroutines.flow.first
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 
+/**
+ * 임박 식재료를 하루 한 번 요약하고, 오래 확인하지 않은 항목은 재검토 상태로 바꾼다.
+ * CoroutineWorker와 Hilt 주입을 사용해 백그라운드 작업도 UI와 동일한 Repository를 공유한다.
+ */
 @HiltWorker
 class ExpiryNotificationWorker @AssistedInject constructor(
     @Assisted appContext: Context,

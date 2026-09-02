@@ -16,6 +16,7 @@ import kotlinx.coroutines.launch
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
+/** 알림 버튼 요청을 비동기로 완료하고, operation ID로 중복 전달을 방지한다. */
 @AndroidEntryPoint
 class NotificationFoodActionReceiver : BroadcastReceiver() {
     @Inject lateinit var repository: FoodRepository
@@ -26,6 +27,7 @@ class NotificationFoodActionReceiver : BroadcastReceiver() {
         val operationId = intent.getStringExtra(EXTRA_OPERATION_ID)
             ?.takeIf(String::isNotBlank)
             ?: UUID.randomUUID().toString()
+        // BroadcastReceiver 수명 이후에도 Room 작업을 마칠 수 있도록 PendingResult를 유지한다.
         val pendingResult = goAsync()
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
             try {

@@ -35,6 +35,10 @@ import dagger.hilt.components.SingletonComponent
 import java.time.Clock
 import javax.inject.Singleton
 
+/**
+ * 앱 수명과 함께 공유해야 하는 데이터 계층과 진입점 의존성을 구성한다.
+ * UI·Worker·Receiver가 구현 클래스를 직접 만들지 않도록 생성 책임을 이 모듈에 모은다.
+ */
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
@@ -47,6 +51,7 @@ object AppModule {
     @Singleton
     fun clock(): Clock = Clock.systemDefaultZone()
 
+    // DB와 Repository는 하나의 인스턴스를 공유해 모든 Flow가 같은 데이터 변경을 관찰한다.
     @Provides
     @Singleton
     fun foodRepository(database: FridgeRescueDatabase, clock: Clock): FoodRepository =

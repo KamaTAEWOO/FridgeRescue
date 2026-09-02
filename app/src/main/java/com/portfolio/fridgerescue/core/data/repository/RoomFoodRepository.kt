@@ -20,6 +20,7 @@ import java.util.UUID
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
+/** Room 트랜잭션 안에서 식재료와 행동 이력을 함께 갱신하는 [FoodRepository] 구현체다. */
 class RoomFoodRepository(
     private val database: FridgeRescueDatabase,
     private val foodItemDao: FoodItemDao,
@@ -40,6 +41,7 @@ class RoomFoodRepository(
 
     override suspend fun save(foodItem: FoodItem, operationId: String): FoodMutationResult =
         database.withTransaction {
+            // 같은 외부 요청이 재시도돼도 이벤트와 상태 변경을 중복 적용하지 않는다.
             duplicate(operationId)?.let { return@withTransaction it }
             val existing = foodItemDao.findById(foodItem.id.value)?.toDomain()
             foodItemDao.upsert(foodItem.toEntity(clock.millis()))
@@ -157,6 +159,7 @@ class RoomFoodRepository(
             previousStatus = previousStatus?.name,
             newStatus = newStatus?.name,
             discardReason = discardReason,
+            // 빠른 연속 작업에서도 정렬 순서가 뒤집히지 않도록 저장 시각을 단조 증가시킨다.
             occurredAtEpochMillis = maxOf(
                 clock.millis(),
                 (foodEventDao.latestOccurredAt() ?: Long.MIN_VALUE).let { latest ->
