@@ -15,6 +15,7 @@
 | [FAMILY_SYNC.md](./FAMILY_SYNC.md) | 계정, 초대 코드, 서버 실행, 충돌 해결, 보안 제약 | 구현 완료 |
 | [PERFORMANCE.md](./PERFORMANCE.md) | Baseline Profile과 Macrobenchmark 결과 | 구현 완료 |
 | [PORTFOLIO.md](./PORTFOLIO.md) | 문제 해결 과정과 기술 판단 | 작성 완료 |
+| [DEMO_DATA.md](./DEMO_DATA.md) | 포트폴리오용 재고·이력·갤러리 테스트 데이터 | 준비 완료 |
 
 ## 현재 제품 결정
 

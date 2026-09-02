@@ -20,14 +20,14 @@
 
 ## 검증 결과
 
-- 앱·서버 JVM 테스트: 50개 통과
-- `connectedDebugAndroidTest`: 47개 통과 (`FridgeRescue_API_26`, `FridgeRescue_API_36`)
+- 앱·서버 JVM 테스트: 52개 통과
+- `connectedDebugAndroidTest`: 48개 통과 (`FridgeRescue_API_26`, `FridgeRescue_API_36`)
 - `lintDebug`: 오류 없음
 - `assembleDebug`: APK 생성 성공
 - 앱 콜드 스타트와 공유 인텐트, 실제 온디바이스 OCR, 시스템 카메라 진입 수동 확인
 - API 36 에뮬레이터 Debug 콜드 스타트 3회: 1,962ms / 1,207ms / 927ms
 - 200% 글자 크기와 시스템 다크 모드에서 홈 핵심 행동·하단 탐색 표시 확인
-- API 26 계측 47개 통과, TalkBack 바인딩·접근성 이름, 재부팅·Doze·절전 모드 QA 통과
+- API 26 계측 48개 통과, TalkBack 바인딩·접근성 이름, 재부팅·Doze·절전 모드 QA 통과
 - 상세 기기 결과: [QA_REPORT_2026-09-02.md](./QA_REPORT_2026-09-02.md)
 - QA 서명 Release APK(43MB)·AAB(23MB) 생성, API 36 콜드 스타트·공유 입력·Google Code Scanner 진입 확인
 

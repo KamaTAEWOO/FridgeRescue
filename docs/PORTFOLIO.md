@@ -48,8 +48,8 @@ UI는 이벤트를 `RescueAction`으로 전달하고 ViewModel이 단일 상태�
 
 ## 품질 전략
 
-- 앱·서버 JVM 테스트 50개로 파서·정렬·중복·날짜·멱등성·리포트·서버 API 규칙 검증
-- 계측 테스트 47개로 Room 마이그레이션·공유 Intent·Compose·가족 스냅샷 병합 검증
+- 앱·서버 JVM 테스트 52개로 파서·정렬·중복·날짜·멱등성·리포트·서버 API·데모 픽스처 규칙 검증
+- 계측 테스트 48개로 Room 마이그레이션·공유 Intent·Compose·가족 스냅샷 병합·데모 시드 멱등성 검증
 - API 26/36 전체 테스트, 실제 TalkBack 서비스, 재부팅·Doze·절전 QA
 - Release에서 R8·리소스 축소·외부 키 서명 및 APK/AAB 서명 검증
 - 별도 Macrobenchmark 모듈과 앱 핵심 흐름 Baseline Profile 생성
