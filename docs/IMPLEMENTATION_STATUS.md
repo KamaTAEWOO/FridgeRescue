@@ -16,7 +16,7 @@
 | 알림 | 기한 경과·D-3·D-1·당일 요약, 앱바 알림함·배지, 개봉 여부와 장보기 피드백, 직접 행동, 22~08시 조용한 시간 | 규칙 단위·권한 UI |
 | 아키텍처 | `presentation → domain ← data` Clean Architecture, Hilt 조립 지점, ViewModel·Coroutine·StateFlow UDF, Worker·Receiver 주입 | 계층 의존 규칙 단위 테스트·KSP 컴파일·전체 회귀 테스트 |
 | 리포트 | 구조·폐기 건수, 금액 미추정 원칙, 반복 폐기 힌트 | 단위·UI |
-| 완성도 | 공통 앱바와 핵심 행동, 알림함, 카드 즉시 행동과 더보기, 접이식 검색·필터, 중립 하단 탐색, 다크 모드, 넓은 화면 2열, 24시간 캐시 정리, 확인 후 전체 로컬 데이터 삭제, CI | Lint·Room·Compose UI·에뮬레이터 |
+| 완성도 | 공통 앱바와 핵심 행동, 알림함, 카드 즉시 행동과 중앙 관리 팝업, 접이식 검색·필터, 중립 하단 탐색, 다크 모드, 넓은 화면 2열, 24시간 캐시 정리, 확인 후 전체 로컬 데이터 삭제, CI | Lint·Room·Compose UI·에뮬레이터 |
 | 릴리스 | R8 코드·리소스 축소, 외부 서명 설정, signed APK·AAB·mapping 산출 | `apksigner`, `jarsigner`, Release 스모크 |
 
 ## 검증 결과

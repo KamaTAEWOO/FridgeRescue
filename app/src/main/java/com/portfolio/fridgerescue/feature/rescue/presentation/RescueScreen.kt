@@ -194,7 +194,7 @@ fun RescueScreen(
         selectedSection == AppSection.HOME || showNotificationPage
     }
     if (detail != null) {
-        FoodDetailSheet(state = detail, onAction = onAction)
+        FoodDetailDialog(state = detail, onAction = onAction)
     }
     val intakeReview = (uiState as? RescueUiState.Content)?.intakeReview?.takeIf {
         selectedSection == AppSection.HOME

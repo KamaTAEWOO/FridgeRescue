@@ -80,7 +80,8 @@
     <string name="editor_error_save">저장하지 못했어요. 다시 시도해주세요.</string>
     <string name="food_added_message">%1$s을(를) 냉장고에 담았어요</string>
     <string name="food_updated_message">%1$s 정보를 수정했어요</string>
-    <string name="action_sheet_description">현재 상태를 기록하면 변경 이력에 안전하게 보관돼요.</string>
+    <string name="action_dialog_description">현재 상태를 기록하면 변경 이력에 안전하게 보관돼요.</string>
+    <string name="action_dialog_close">재료 관리 닫기</string>
     <string name="action_still_here">아직 있어요</string>
     <string name="action_partially_used">일부 사용했어요</string>
     <string name="action_discard">버렸어요</string>

@@ -550,6 +550,7 @@ class RescueScreenTest {
 
         composeRule.onNodeWithTag(PantryFilterTestTags.LIST).performScrollToIndex(2)
         composeRule.onNodeWithContentDescription("더보기").performClick()
+        composeRule.onNodeWithTag(FoodDetailTestTags.DIALOG).assertIsDisplayed()
         composeRule.onNodeWithText("정보 수정").performClick()
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithTag(FoodEditorTestTags.NAME).fetchSemanticsNodes().isNotEmpty()
