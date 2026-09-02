@@ -70,10 +70,11 @@
 | JVM 단위 | `TC-BARCODE-001~006` | `Gs1BarcodeParserTest`, `ReceiveBarcodeUseCaseTest`, `SaveIntakeCandidatesUseCaseTest` | `AUTOMATED` |
 | Room 마이그레이션·Compose UI | `TC-DATA-017`, `TC-BARCODE-007`, `TC-INTAKE-013` | `DatabaseMigrationTest`, `RescueScreenTest` | `AUTOMATED` |
 | JVM·Room·Compose UI | `TC-PRIVACY-004`, `005` 전체 삭제 | `SharedIntakeCacheCleanerTest`, `DataDeletionManagerTest`, `RescueScreenTest` | `AUTOMATED` |
+| 앱 시작 계측 | `TC-ARCH-001` Hilt 그래프와 MainActivity 생성 | `HiltAppLaunchTest` | `AUTOMATED` |
 
-- 자동 테스트: 103개
-- 최근 검증 환경: `FridgeRescue_API_36`, Android API 36
-- 최근 결과: 앱·서버 JVM 52개 통과, Room·Intent·Compose 계측 51개 통과
+- 자동 테스트: 104개
+- 최근 검증 환경: `FridgeRescue_API_26`, `FridgeRescue_API_36`
+- 최근 결과: 앱·서버 JVM 52개 통과, Hilt·Room·Intent·Compose 계측 52개 통과
 
 ## 3. 자동화 계층
 

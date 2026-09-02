@@ -18,7 +18,8 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
-import com.portfolio.fridgerescue.FridgeRescueApplication
+import androidx.hilt.work.HiltWorker
+import com.portfolio.fridgerescue.core.data.repository.FoodRepository
 import com.portfolio.fridgerescue.MainActivity
 import com.portfolio.fridgerescue.R
 import com.portfolio.fridgerescue.feature.intake.SharedIntakeCacheCleaner
@@ -28,16 +29,23 @@ import java.time.LocalDate
 import java.time.ZonedDateTime
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.flow.first
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
 
-class ExpiryNotificationWorker(
-    appContext: Context,
-    params: WorkerParameters,
+@HiltWorker
+class ExpiryNotificationWorker @AssistedInject constructor(
+    @Assisted appContext: Context,
+    @Assisted params: WorkerParameters,
+    private val repository: FoodRepository,
+    private val settingsRepository: NotificationSettingsRepository,
+    private val quietHoursPolicy: QuietHoursPolicy,
+    private val getStaleFoods: GetStaleFoodCandidatesUseCase,
+    private val getNotificationCandidates: GetNotificationCandidatesUseCase,
 ) : CoroutineWorker(appContext, params) {
     override suspend fun doWork(): Result {
         SharedIntakeCacheCleaner.clean(applicationContext.cacheDir, Instant.now())
-        val application = applicationContext as FridgeRescueApplication
-        val settings = application.container.notificationSettingsRepository.settings.first()
-        val quietDelay = QuietHoursPolicy().delayUntilAllowed(ZonedDateTime.now(), settings)
+        val settings = settingsRepository.settings.first()
+        val quietDelay = quietHoursPolicy.delayUntilAllowed(ZonedDateTime.now(), settings)
         if (quietDelay != null) {
             scheduleAfterQuietHours(quietDelay)
             return Result.success()
@@ -53,9 +61,8 @@ class ExpiryNotificationWorker(
             return Result.success()
         }
 
-        val repository = application.container.foodRepository
         val initialFoods = repository.foodItems.first()
-        val staleFoods = GetStaleFoodCandidatesUseCase()(
+        val staleFoods = getStaleFoods(
             foods = initialFoods,
             events = repository.events.first(),
             now = Instant.now(),
@@ -67,7 +74,7 @@ class ExpiryNotificationWorker(
             )
         }
         val foods = if (staleFoods.isEmpty()) initialFoods else repository.foodItems.first()
-        val candidates = GetNotificationCandidatesUseCase()(foods, LocalDate.now())
+        val candidates = getNotificationCandidates(foods, LocalDate.now())
         if (candidates.isEmpty()) {
             notificationManager.cancel(NOTIFICATION_ID)
             return Result.success()

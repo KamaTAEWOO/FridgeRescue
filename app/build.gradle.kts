@@ -16,6 +16,7 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.androidx.room)
     alias(libs.plugins.androidx.baselineprofile)
+    alias(libs.plugins.hilt)
 }
 
 android {
@@ -97,9 +98,13 @@ dependencies {
     implementation(libs.mlkit.text.recognition.korean)
     implementation(libs.google.code.scanner)
     implementation(libs.androidx.datastore.preferences)
+    implementation(libs.hilt.android)
+    implementation(libs.androidx.hilt.work)
     implementation(project(":sync-contract"))
     implementation(libs.kotlinx.serialization.json)
     ksp(libs.androidx.room.compiler)
+    ksp(libs.hilt.compiler)
+    ksp(libs.androidx.hilt.compiler)
 
     testImplementation(libs.junit4)
 

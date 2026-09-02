@@ -35,6 +35,10 @@ flowchart TB
     UI[Compose UI] -->|UserAction| VM[ViewModel]
     VM -->|UiState StateFlow| UI
     VM --> UC[Use Cases]
+    HILT[Hilt DI] --> VM
+    HILT --> UC
+    HILT --> REPO
+    HILT --> WM
     UC --> REPO[Repositories]
     REPO --> DB[Room DB]
     REPO --> INTAKE[Share / ML Kit data sources]
@@ -50,6 +54,8 @@ flowchart TB
 - Repository가 로컬·외부 입력 데이터를 조정한다.
 - Room이 앱 데이터의 단일 진실 공급원이다.
 - UI는 네트워크나 ML 작업의 성공을 낙관적으로 단정하지 않는다.
+- Hilt의 `SingletonComponent`가 DB·Repository·설정 저장소를 한 번만 생성한다.
+- ViewModel과 Worker는 생성자가 의존성을 전달받고 Application의 서비스 로케이터를 참조하지 않는다.
 
 ## 4. 모듈 계획
 
@@ -113,7 +119,7 @@ feature/intake/
 | 내비게이션 | Navigation 3 또는 현재 안정 Compose Navigation | 화면 2개 이상 |
 | DB | Room 2.8.4, KSP | 도입 완료 — 스키마 v1 |
 | 설정 | Preferences DataStore | 알림 설정 |
-| DI | Hilt | Repository와 Worker 연결 시점 |
+| DI | Hilt 2.58 + KSP | 도입 완료 — Repository·ViewModel·Worker·Receiver 연결 |
 | 백그라운드 | WorkManager | 임박 알림 |
 | 문서 스캔 | ML Kit Document Scanner | 종이 영수증 기능 |
 | OCR | ML Kit Korean Text Recognition v2 | 공유 이미지 분석 |
@@ -412,6 +418,8 @@ foodAlertKey = foodItemId + alertType
 
 - [Android 앱 아키텍처 권장사항](https://developer.android.com/topic/architecture/recommendations)
 - [Android offline-first 가이드](https://developer.android.com/topic/architecture/data-layer/offline-first)
+- [Hilt로 Android 의존성 주입](https://developer.android.com/training/dependency-injection/hilt-android)
+- [Hilt와 ViewModel·WorkManager 연동](https://developer.android.com/training/dependency-injection/hilt-jetpack)
 - [Compose에서 공유 콘텐츠 받기](https://developer.android.com/develop/ui/compose/sharing/receive)
 - [ML Kit Document Scanner](https://developers.google.com/ml-kit/vision/doc-scanner/android)
 - [ML Kit Text Recognition v2](https://developers.google.com/ml-kit/vision/text-recognition/v2)

@@ -17,11 +17,17 @@ import com.portfolio.fridgerescue.feature.intake.ReceiveBarcodeUseCase
 import com.portfolio.fridgerescue.feature.intake.SharedContentReceiver
 import com.portfolio.fridgerescue.feature.rescue.presentation.RescueRoute
 import com.portfolio.fridgerescue.ui.theme.FridgeRescueTheme
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 import kotlinx.coroutines.launch
 import java.io.File
 import java.util.UUID
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    @Inject lateinit var sharedContentReceiver: SharedContentReceiver
+    @Inject lateinit var receiveBarcode: ReceiveBarcodeUseCase
+
     private var pendingCaptureFile: File? = null
     private val receiptCamera = registerForActivityResult(
         ActivityResultContracts.TakePicture(),
@@ -75,9 +81,8 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun receiveSharedContent(intent: Intent) {
-        val repository = (application as FridgeRescueApplication).container.intakeDraftRepository
         lifecycleScope.launch {
-            SharedContentReceiver(applicationContext, repository).receive(intent)
+            sharedContentReceiver.receive(intent)
         }
     }
 
@@ -116,10 +121,8 @@ class MainActivity : ComponentActivity() {
                     Toast.makeText(this, R.string.barcode_empty_error, Toast.LENGTH_SHORT).show()
                     return@addOnSuccessListener
                 }
-                val repository =
-                    (application as FridgeRescueApplication).container.intakeDraftRepository
                 lifecycleScope.launch {
-                    ReceiveBarcodeUseCase(repository)(rawValue, barcode.format.toString())
+                    receiveBarcode(rawValue, barcode.format.toString())
                 }
             }
             .addOnFailureListener {

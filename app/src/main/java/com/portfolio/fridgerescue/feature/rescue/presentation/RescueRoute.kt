@@ -30,7 +30,7 @@ import com.portfolio.fridgerescue.feature.report.AppSection
 
 @Composable
 fun RescueRoute(
-    viewModel: RescueViewModel = viewModel(factory = RescueViewModel.Factory),
+    viewModel: RescueViewModel = viewModel(),
     onCaptureReceipt: () -> Unit = {},
     onPickReceipt: () -> Unit = {},
     onScanBarcode: () -> Unit = {},

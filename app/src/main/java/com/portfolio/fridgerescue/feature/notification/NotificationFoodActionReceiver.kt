@@ -4,7 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import androidx.core.app.NotificationManagerCompat
-import com.portfolio.fridgerescue.FridgeRescueApplication
+import com.portfolio.fridgerescue.core.data.repository.FoodRepository
 import com.portfolio.fridgerescue.core.model.FoodActionRequest
 import com.portfolio.fridgerescue.core.model.FoodActionType
 import com.portfolio.fridgerescue.core.model.FoodItemId
@@ -13,8 +13,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class NotificationFoodActionReceiver : BroadcastReceiver() {
+    @Inject lateinit var repository: FoodRepository
+
     override fun onReceive(context: Context, intent: Intent) {
         val foodId = intent.getStringExtra(EXTRA_FOOD_ID)?.takeIf(String::isNotBlank) ?: return
         val actionType = intent.action.toFoodActionType() ?: return
@@ -22,10 +27,9 @@ class NotificationFoodActionReceiver : BroadcastReceiver() {
             ?.takeIf(String::isNotBlank)
             ?: UUID.randomUUID().toString()
         val pendingResult = goAsync()
-        val application = context.applicationContext as FridgeRescueApplication
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
             try {
-                application.container.foodRepository.performAction(
+                repository.performAction(
                     FoodActionRequest(
                         foodItemId = FoodItemId(foodId),
                         type = actionType,

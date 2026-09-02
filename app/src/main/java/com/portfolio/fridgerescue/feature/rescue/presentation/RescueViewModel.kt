@@ -1,11 +1,7 @@
 package com.portfolio.fridgerescue.feature.rescue.presentation
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
-import com.portfolio.fridgerescue.FridgeRescueApplication
 import com.portfolio.fridgerescue.core.data.repository.FoodRepository
 import com.portfolio.fridgerescue.core.data.repository.IntakeDraftRepository
 import com.portfolio.fridgerescue.core.data.DataDeletionManager
@@ -44,7 +40,10 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import com.portfolio.fridgerescue.feature.rescue.domain.FilterRescueQueueUseCase
 import com.portfolio.fridgerescue.feature.rescue.domain.PantryFilter
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
+@HiltViewModel
 class RescueViewModel(
     private val repository: FoodRepository,
     private val intakeDraftRepository: IntakeDraftRepository? = null,
@@ -57,7 +56,29 @@ class RescueViewModel(
     private val saveFoodItem: SaveFoodItemUseCase = SaveFoodItemUseCase(repository),
     private val saveCandidateBatch: SaveIntakeCandidatesUseCase =
         SaveIntakeCandidatesUseCase(repository, clock),
+    private val updateIntakeCandidate: UpdateIntakeCandidateUseCase? =
+        intakeDraftRepository?.let(::UpdateIntakeCandidateUseCase),
+    private val findDuplicateCandidates: FindDuplicateCandidatesUseCase =
+        FindDuplicateCandidatesUseCase(),
+    private val getReportMetrics: GetReportMetricsUseCase = GetReportMetricsUseCase(),
 ) : ViewModel() {
+    @Inject
+    constructor(dependencies: RescueDependencies) : this(
+        repository = dependencies.foodRepository,
+        intakeDraftRepository = dependencies.intakeDraftRepository,
+        notificationSettingsRepository = dependencies.notificationSettingsRepository,
+        dataDeletionManager = dependencies.dataDeletionManager,
+        familySyncManager = dependencies.familySyncManager,
+        clock = dependencies.clock,
+        getRescueQueue = dependencies.getRescueQueue,
+        filterRescueQueue = dependencies.filterRescueQueue,
+        saveFoodItem = dependencies.saveFoodItem,
+        saveCandidateBatch = dependencies.saveCandidateBatch,
+        updateIntakeCandidate = dependencies.updateIntakeCandidate,
+        findDuplicateCandidates = dependencies.findDuplicateCandidates,
+        getReportMetrics = dependencies.getReportMetrics,
+    )
+
     private val eventChannel = Channel<RescueEvent>(Channel.BUFFERED)
     private val editorState = MutableStateFlow<FoodEditorUiState?>(null)
     private val detailSelection = MutableStateFlow<DetailSelection?>(null)
@@ -151,7 +172,7 @@ class RescueViewModel(
     }
 
     val reportMetrics = combine(repository.foodItems, repository.events) { foodItems, events ->
-        GetReportMetricsUseCase()(foodItems, events)
+        getReportMetrics(foodItems, events)
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
@@ -221,7 +242,7 @@ class RescueViewModel(
             importOptionsVisible,
         ->
         val reviewWithDuplicates = review?.copy(
-            duplicateCandidateIds = FindDuplicateCandidatesUseCase()(
+            duplicateCandidateIds = findDuplicateCandidates(
                 candidates = review.candidates,
                 foods = queue.foodItems,
             ),
@@ -266,13 +287,11 @@ class RescueViewModel(
                 intakeDraftRepository?.updateCandidateSelected(action.candidateId, action.selected)
             }
             is RescueAction.UpdateIntakeCandidate -> viewModelScope.launch {
-                intakeDraftRepository?.let { repository ->
-                    UpdateIntakeCandidateUseCase(repository)(
-                        candidateId = action.candidateId,
-                        name = action.name,
-                        quantityText = action.quantity,
-                    )
-                }
+                updateIntakeCandidate?.invoke(
+                    candidateId = action.candidateId,
+                    name = action.name,
+                    quantityText = action.quantity,
+                )
             }
             is RescueAction.SaveIntakeCandidates -> saveIntakeCandidates(action.draftId)
             RescueAction.OpenImportOptions -> showImportOptions.value = true
@@ -441,21 +460,6 @@ class RescueViewModel(
         }
     }
 
-    companion object {
-        val Factory = viewModelFactory {
-            initializer {
-                val application = checkNotNull(this[APPLICATION_KEY]) as FridgeRescueApplication
-                RescueViewModel(
-                    repository = application.container.foodRepository,
-                    intakeDraftRepository = application.container.intakeDraftRepository,
-                    notificationSettingsRepository = application.container.notificationSettingsRepository,
-                    dataDeletionManager = application.container.dataDeletionManager,
-                    familySyncManager = application.container.familySyncManager,
-                )
-            }
-        }
-    }
-
     private data class DetailSelection(
         val foodItemId: FoodItemId,
         val discardReason: String = "",
@@ -469,6 +473,22 @@ class RescueViewModel(
         val filter: PantryFilter,
     )
 }
+
+data class RescueDependencies(
+    val foodRepository: FoodRepository,
+    val intakeDraftRepository: IntakeDraftRepository,
+    val notificationSettingsRepository: NotificationSettingsRepository,
+    val dataDeletionManager: DataDeletionManager,
+    val familySyncManager: FamilySyncManager,
+    val clock: Clock,
+    val getRescueQueue: GetRescueQueueUseCase,
+    val filterRescueQueue: FilterRescueQueueUseCase,
+    val saveFoodItem: SaveFoodItemUseCase,
+    val saveCandidateBatch: SaveIntakeCandidatesUseCase,
+    val updateIntakeCandidate: UpdateIntakeCandidateUseCase,
+    val findDuplicateCandidates: FindDuplicateCandidatesUseCase,
+    val getReportMetrics: GetReportMetricsUseCase,
+)
 
 enum class FamilySyncFeedback { ACCOUNT_CREATED, FAMILY_JOINED, SYNCED, FAILED }
 
