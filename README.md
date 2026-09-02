@@ -2,6 +2,11 @@
 
 > 등록은 가볍게, 소비 판단은 정확하게.
 
+[![Android CI](https://github.com/KamaTAEWOO/FridgeRescue/actions/workflows/android.yml/badge.svg)](https://github.com/KamaTAEWOO/FridgeRescue/actions/workflows/android.yml)
+![Kotlin](https://img.shields.io/badge/Kotlin-2.3-7F52FF?logo=kotlin&logoColor=white)
+![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-Material%203-4285F4?logo=jetpackcompose&logoColor=white)
+![Android](https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&logoColor=white)
+
 온라인 주문내역·영수증·바코드를 받아 식재료 후보를 자동으로 만들고, 먼저 먹어야 할 재료를 알려주는 로컬 우선 Android 앱입니다. 포트폴리오를 위한 화면 구현에 그치지 않고 데이터 복구, 예외 처리, 접근성, 알림, 릴리스 최적화와 성능 측정까지 제품 단위로 완성했습니다.
 
 <p align="center">
@@ -23,9 +28,9 @@
 
 ## 핵심 화면
 
-| 구매내역 검토 | 구조 큐 | 행동 기반 리포트 |
-|---|---|---|
-| <img src="docs/assets/intake-review.png" width="260" alt="구매내역 자동 후보 검토"> | <img src="docs/assets/home-rescue-queue.png" width="260" alt="임박도 기반 구조 큐"> | <img src="docs/assets/report.png" width="260" alt="구조 및 폐기 리포트"> |
+| 구매내역 검토 | 구조 큐 | 재료 관리 | 행동 기반 리포트 |
+|---|---|---|---|
+| <img src="docs/assets/intake-review.png" width="220" alt="구매내역 자동 후보 검토"> | <img src="docs/assets/home-rescue-queue.png" width="220" alt="임박도 기반 구조 큐"> | <img src="docs/assets/food-detail-dialog.png" width="220" alt="재료 상태와 이력을 관리하는 중앙 팝업"> | <img src="docs/assets/report.png" width="220" alt="구조 및 폐기 리포트"> |
 
 ## 제품 판단
 
@@ -81,6 +86,22 @@
 
 ```bash
 ./gradlew testDebugUnitTest lintDebug connectedDebugAndroidTest assembleRelease
+```
+
+## 로컬 실행
+
+Android Studio에서 저장소 루트를 열고 JDK 17과 Android SDK 36을 선택한 뒤 `app` 구성을 실행합니다. 명령줄에서는 다음과 같이 Debug APK를 만들 수 있습니다.
+
+```bash
+git clone https://github.com/KamaTAEWOO/FridgeRescue.git
+cd FridgeRescue
+./gradlew :app:assembleDebug
+```
+
+포트폴리오 시연용 데이터와 갤러리 사진을 연결된 에뮬레이터에 한 번에 설치하려면 아래 스크립트를 사용합니다.
+
+```bash
+./scripts/seed-demo-emulator.sh
 ```
 
 ## 문서
